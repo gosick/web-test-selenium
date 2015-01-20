@@ -11,22 +11,21 @@ class TestUrl extends URLChecker{
 
 		$driver->get($url);
 
-		//$code = $this->getHTTPResponseCode(5000, 'http://docs.seleniumhq.org/');
+		$this->getUrlList($url);
 
 		$driver->manage()->deleteAllCookies();
 		$driver->manage()->addCookie(array(
 		  'name' => 'cookie_name',
 		  'value' => 'cookie_value',
-		  'http_request' => '$code'
 		));
 		$cookies = $driver->manage()->getCookies();
 		print_r($cookies);
 
 		// click the link 'About'
-		$link = $driver->findElement(
+		/*$link = $driver->findElement(
 		WebDriverBy::id('menu_about')
 		);
-		$link->click();
+		$link->click();*/
 
 		// print the title of the current page
 		echo "The title is " . $driver->getTitle() . "'\n";
@@ -35,24 +34,24 @@ class TestUrl extends URLChecker{
 		echo "The current URI is " . $driver->getCurrentURL() . "'\n";
 
 		// Search 'php' in the search box
-		$input = $driver->findElement(
+		/*$input = $driver->findElement(
 		WebDriverBy::id('q')
 		);
 		$input->sendKeys('php')->submit();
-
+		*/
 		// wait at most 10 seconds until at least one result is shown
-		$driver->wait(10)->until(
+		/*$driver->wait(10)->until(
 			WebDriverExpectedCondition::presenceOfAllElementsLocatedBy(
 				WebDriverBy::className('gsc-result')
 			)
-		);
+		);*/
 
 
 		// close the Firefox
 		$driver->quit();
 	}
 
-	public function ttt($timeout_in_ms, $url)
+	public function responseCode($timeout_in_ms, $url)
 	{
 		$ch = curl_init();
     	curl_setopt($ch, CURLOPT_URL, $url);
@@ -74,6 +73,52 @@ class TestUrl extends URLChecker{
 	    curl_close($ch);
 	    return $code;
 	}
+
+	public function getUrlList($url)
+	{
+		$homepage = file_get_contents($url);
+		preg_match_all("/(http|https|ftp):\/\/[^<>[:space:]]+[[:alnum:]#?\/&=+%_]/", $homepage, $match);
+		$list = $match[0];
+
+		
+		foreach ($list as $value)
+		{
+			$result = preg_replace("/\'\/|\"(;var)/", "", $value);
+			$requestcode = $this->responseCode(5000, $result);
+			echo $requestcode."\t";
+			echo $result."\n";
+		}
+
+
+		preg_match_all("/(href=\")\/[^<>[:space:]]+[[:alnum:]#?\/&=+%_]/",$homepage, $match1);
+		$list1 = $match1[0];
+
+		foreach ($list1 as $value)
+		{
+			$result = preg_replace("/(href=\")/", "", $value);
+			if(preg_match("/\/(tw)\//", $result)||preg_match("/\/(ysm)/", $result)||preg_match("/\/css/", $result))
+			{
+				$string = 'http://dev.muzik-online.com'.$result;
+				$requestcode = $this->responseCode(5000, $string);
+				echo $requestcode."\t";
+				echo $string."\n\n";
+			}
+			else if(preg_match("/\/(concert)/", $result)||preg_match("/\/(article)/", $result)||preg_match("/\/(listen)/", $result)||preg_match("/\/(download)/", $result))
+			{
+				$string = 'http://dev.muzik-online.com/tw'.$result;
+				$requestcode = $this->responseCode(5000, $string);
+				echo $requestcode."\t";
+				echo $string."\n\n";
+			}
+			else
+			{
+				$string = 'http:'.$result;
+				$requestcode = $this->responseCode(5000, $string);
+				echo $requestcode."\t";
+				echo $string."\n\n";
+			}
+		}
+	}
 }
 
 ?>
@@ -81,9 +126,8 @@ class TestUrl extends URLChecker{
 <?php
 
 	$host = 'http://localhost:4444/wd/hub';
-	$url = 'https://www.muzik-online.com/tw/article/focus/63b1a9c4-b077-7711-81f6-f23af65f44c5'; 
+	$url = 'http://dev.muzik-online.com/tw/'; 
 	$test = new TestUrl;
-	//$test->getHttpRequest($host, $url);
-	$code = $test->ttt(5000, $url);
-	echo $code;
+	$test->getHttpRequest($host, $url);
+
 ?>
