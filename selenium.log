@@ -1,0 +1,16 @@
+14:35:07.845 INFO [1] org.openqa.grid.selenium.GridLauncher - Launching a standalone server
+14:35:07.900 INFO [1] org.openqa.selenium.server.SeleniumServer - Writing debug logs to selenium.log
+14:35:07.901 INFO [1] org.openqa.selenium.server.SeleniumServer - Java: Oracle Corporation 25.25-b02
+14:35:07.901 INFO [1] org.openqa.selenium.server.SeleniumServer - OS: Mac OS X 10.10.1 x86_64
+14:35:07.915 INFO [1] org.openqa.selenium.server.SeleniumServer - v2.44.0, with Core v2.44.0. Built from revision 76d78cf
+14:35:08.066 INFO [1] org.openqa.selenium.remote.server.DefaultDriverSessions - Default driver org.openqa.selenium.ie.InternetExplorerDriver registration is skipped: registration capabilities Capabilities [{ensureCleanSession=true, browserName=internet explorer, version=, platform=WINDOWS}] does not match with current platform: MAC
+14:35:08.123 INFO [1] org.openqa.selenium.server.SeleniumServer - RemoteWebDriver instances should connect to: http://127.0.0.1:4444/wd/hub
+14:35:08.125 INFO [1] org.openqa.jetty.http.HttpServer - Version Jetty/5.1.x
+14:35:08.127 INFO [1] org.openqa.jetty.util.Container - Started HttpContext[/selenium-server,/selenium-server]
+14:35:08.153 INFO [1] org.openqa.jetty.util.Container - Started org.openqa.jetty.jetty.servlet.ServletHandler@ea4a92b
+14:35:08.153 INFO [1] org.openqa.jetty.util.Container - Started HttpContext[/wd,/wd]
+14:35:08.153 INFO [1] org.openqa.jetty.util.Container - Started HttpContext[/selenium-server/driver,/selenium-server/driver]
+14:35:08.154 INFO [1] org.openqa.jetty.util.Container - Started HttpContext[/,/]
+14:35:08.159 INFO [1] org.openqa.jetty.http.SocketListener - Started SocketListener on 0.0.0.0:4444
+14:35:08.159 INFO [1] org.openqa.jetty.util.Container - Started org.openqa.jetty.jetty.Server@378fd1ac
+14:35:46.840 INFO [16] org.openqa.selenium.server.SeleniumServer - Shutting down...
