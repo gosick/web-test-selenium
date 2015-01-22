@@ -111,6 +111,36 @@ class TestUrl extends URLChecker{
 
 	}
 
+	public function testElement($host, $url)
+	{
+		$capabilities = DesiredCapabilities::firefox();
+		$driver = RemoteWebDriver::create($host, $capabilities, 5000);
+
+		$driver->get($url);
+
+		$driver->manage()->deleteAllCookies();
+		$driver->manage()->addCookie(array(
+		  'name' => 'cookie_name',
+		  'value' => 'cookie_value',
+		));
+		$cookies = $driver->manage()->getCookies();
+		print_r($cookies);
+
+		
+
+		$link = $driver->findElement(WebDriverBy::name('keyword'));
+
+		$link->sendKeys('貝多芬');
+
+		// print the title of the current page
+		echo "The title is " . $driver->getTitle() . "'\n";
+
+		echo "The current URI is " . $driver->getCurrentURL() . "'\n";
+
+
+		// close the Firefox
+		//$driver->quit();
+	}
 }
 
 ?>
@@ -123,5 +153,6 @@ class TestUrl extends URLChecker{
 	//$url = 'https://github.com/gosick/web-test-selenium';
 
 	$test = new TestUrl;
-	$test->getHttpRequest($host, $url);
+	//$test->getHttpRequest($host, $url);
+	$test->testElement($host, $url);
 ?>
