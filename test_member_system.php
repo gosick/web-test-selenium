@@ -63,7 +63,6 @@ class TestMemberSystem {
 				case 'add':
 					//--add new song list--//
 					
-					//click add song list button
 					$setTimeout->implicitlyWait(0.5);
 					//click add song list button
 					$songListAdd = $this->driver->findElement(WebDriverBy::cssSelector('div.btnAdd.add'));
@@ -115,11 +114,13 @@ class TestMemberSystem {
 					$setTimeout->implicitlyWait(0.5);
 					$songListAddNew->click();
 
+					break;
+
 				case 'copy':
 					//--copy a song list--//
 
 					$setTimeout->implicitlyWait(0.5);
-					//find the third song list outer div
+					//find the first song list outer div
 					$getSonglistDiv = $this->driver->findElements(WebDriverBy::xpath('//div[@class="listenContentInner clearfix"]/div[1]/div'));
 
 					//write javascript to set the overflow not to hide
@@ -148,6 +149,54 @@ class TestMemberSystem {
 					$setTimeout->implicitlyWait(0.5);
 					$songListAddNew->click();
 
+					break;
+
+				case 'play':
+					//play the songs of the song list
+
+					$setTimeout->implicitlyWait(0.5);
+					//find the first song list outer div
+					$getSonglistDiv = $this->driver->findElements(WebDriverBy::xpath('//div[@class="listenContentInner clearfix"]/div[1]/div'));
+
+					//write javascript to set the overflow not to hide
+					$js = "arguments[0].style.height='auto'; arguments[0].style.overflow='scroll';";
+					$this->driver->executeScript($js, $getSonglistDiv);
+
+					//then the inner elements will be visible
+					$getSonglist = $this->driver->findElement(WebDriverBy::xpath('//div[@class="listenContentInner clearfix"]/div[1]/div/div/a[5]'));
+					$getSonglist->click();
+
+					break;
+
+				case 'enter':
+					//enter the song list
+
+					$setTimeout->implicitlyWait(0.5);
+					$getSonglistDiv = $this->driver->findElement(WebDriverBy::xpath('//div[@class="listenContentInner clearfix"]/div[3]/a'));
+					$getSonglistDiv->click();
+
+
+					break;
+
+				case 'del':
+					//delete the song list
+
+					$setTimeout->implicitlyWait(0.5);
+					//click delete song list button
+					$songListDel = $this->driver->findElement(WebDriverBy::cssSelector('div.btnDelete.remove'));
+					$songListDel->click();
+					
+					$getSonglistDiv = $this->driver->findElements(WebDriverBy::xpath('//div[@class="listenContentInner clearfix"]/div[3]/div'));
+
+					//write javascript to set the overflow not to hide
+					$js = "arguments[0].style.height='auto'; arguments[0].style.overflow='scroll';";
+					$this->driver->executeScript($js, $getSonglistDiv);
+
+					$getSonglist = $this->driver->findElement(WebDriverBy::xpath('//div[@class="listenContentInner clearfix"]/div[1]/div/a'));
+					$getSonglist->click();
+
+					$delBtn = $this->driver->findElement(WebDriverBy::cssSelector('button.button.button-gold'));
+					$delBtn->click();
 
 				default:
 					# code...
@@ -170,6 +219,6 @@ class TestMemberSystem {
 	$password = 'ss07290420';
 	$test = new TestMemberSystem;
 	$test->testLogin($host, $url, $account, $password);
-	$test->testMemberModSongList('copy');//add
+	$test->testMemberModSongList('del');//add
 
 ?>
