@@ -13,14 +13,14 @@ class TestMemberSystem {
 
 		$this->driver->get($url);
 		
-
+		$setTimeout = $this->driver->manage()->timeouts();
 		$this->driver->manage()->deleteAllCookies();
 		$this->driver->manage()->addCookie(array(
 		  'name' => 'cookie_name',
 		  'value' => 'cookie_value',
 		));
 		$this->cookies = $this->driver->manage()->getCookies();
-
+		//$setTimeout->implicitlyWait(1);
 
 		$link1 = $this->driver->findElement(WebDriverBy::id('account'))->sendKeys($account);
 		$link2 = $this->driver->findElement(WebDriverBy::id('password'))->sendKeys($password);
@@ -32,7 +32,7 @@ class TestMemberSystem {
 
 		// print the title of the current page
 		echo "The current URI is " . $this->driver->getCurrentURL() . "'\n";
-
+		$setTimeout->implicitlyWait(1);
 		$this->cookies = $this->driver->manage()->getCookies();
 		print_r($this->cookies);
 		$this->driver->navigate()->refresh();
@@ -61,10 +61,11 @@ class TestMemberSystem {
 
 			switch ($select) {
 				case 'add':
-					//add new song list
+					//--add new song list--//
 					
 					//click add song list button
 					$setTimeout->implicitlyWait(0.5);
+					//click add song list button
 					$songListAdd = $this->driver->findElement(WebDriverBy::cssSelector('div.btnAdd.add'));
 					$songListAdd->click();
 					
@@ -81,30 +82,38 @@ class TestMemberSystem {
 
 					break;
 
-				case 'del':
+				case 'edit':
+					//--edit a song list--//
 
 					$setTimeout->implicitlyWait(0.5);
-					$getSonglistDiv = $this->driver->findElement(WebDriverBy::xpath('//div[@class="listenContentInner clearfix"]/div[3]/div'));
-					$getSonglistDiv->click();
-					//echo $getSonglistDiv->getLocation();
-					$setTimeout->implicitlyWait(0.5);
+					//find the third song list outer div
+					$getSonglistDiv = $this->driver->findElements(WebDriverBy::xpath('//div[@class="listenContentInner clearfix"]/div[3]/div'));
 
-					//$getSong = $getSonglistDiv->findElement(WebDriverBy::cssSelector('edit.block'));
-					//$getSong->click();
-					//$getSonglistDiv = $this->driver->findElement(WebDriverBy::xpath('//div[@class="listenContentInner clearfix"]/div[3]/div/div/a[3]'));
-					//$getSonglistDiv = $this->driver->findElement(WebDriverBy::xpath('div.listenPlaylist:nth-child(3) > div:nth-child(1) > div:nth-child(1) > a:nth-child(3)'));
-					//echo $getSonglistDiv->isEnabled();
-				//	$getSonglistDiv->click();
-					//$setTimeout->implicitlyWait(0.5);
+					//write javascript to set the overflow not to hide
+					$js = "arguments[0].style.height='auto'; arguments[0].style.overflow='scroll';";
+					$this->driver->executeScript($js, $getSonglistDiv);
 
-					//$getSonglistDiv2 = $this->driver->findElement(WebDriverBy::xpath('//div[@class="listenContentInner clearfix"]/div[3]/div/div/a[3]'));
-					//echo $getSonglistDiv2->isDisplayed();
-					/*$songListAddFilltitle = $this->driver->findElement(WebDriverBy::id('playlist_title'));
-					$songListAddFilltitle->sendKeys('taafafs');
+					//then the inner elements will be visible
+					$getSonglist = $this->driver->findElement(WebDriverBy::xpath('//div[@class="listenContentInner clearfix"]/div[3]/div/div/a[3]'));
+					$getSonglist->click();
+				
+					//--fill the playlist_title and description with some texts and then submit--//
+
+					$songListAddFilltitle = $this->driver->findElement(WebDriverBy::id('playlist_title'));
+					//clear title
+					$songListAddFilltitle->clear();
+					//fill the title
+					$songListAddFilltitle->sendKeys('ya');
+
 					$songListAddFilldescription = $this->driver->findElement(WebDriverBy::id('summary'));
-					$songListAddFilldescription->sendKeys('afsaffasfsfsfsaf');
+					//clear description
+					$songListAddFilldescription->clear();
+					//fill the description
+					$songListAddFilldescription->sendKeys('ok!');
+
 					$songListAddNew = $this->driver->findElement(WebDriverBy::cssSelector('button.button.button-gold'));
-					$songListAddNew->click();*/
+					$setTimeout->implicitlyWait(0.5);
+					$songListAddNew->click();
 
 
 
@@ -129,6 +138,6 @@ class TestMemberSystem {
 	$password = 'ss07290420';
 	$test = new TestMemberSystem;
 	$test->testLogin($host, $url, $account, $password);
-	$test->testMemberModSongList('del');//add
+	$test->testMemberModSongList('edit');//add
 
 ?>
