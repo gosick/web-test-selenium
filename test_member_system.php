@@ -115,6 +115,38 @@ class TestMemberSystem {
 					$setTimeout->implicitlyWait(0.5);
 					$songListAddNew->click();
 
+				case 'copy':
+					//--copy a song list--//
+
+					$setTimeout->implicitlyWait(0.5);
+					//find the third song list outer div
+					$getSonglistDiv = $this->driver->findElements(WebDriverBy::xpath('//div[@class="listenContentInner clearfix"]/div[1]/div'));
+
+					//write javascript to set the overflow not to hide
+					$js = "arguments[0].style.height='auto'; arguments[0].style.overflow='scroll';";
+					$this->driver->executeScript($js, $getSonglistDiv);
+
+					//then the inner elements will be visible
+					$getSonglist = $this->driver->findElement(WebDriverBy::xpath('//div[@class="listenContentInner clearfix"]/div[1]/div/div/a[2]'));
+					$getSonglist->click();
+
+					//--fill the playlist_title and description with some texts and then submit--//
+
+					$songListAddFilltitle = $this->driver->findElement(WebDriverBy::id('playlist_title'));
+					//clear title
+					$songListAddFilltitle->clear();
+					//fill the title
+					$songListAddFilltitle->sendKeys('ya');
+
+					$songListAddFilldescription = $this->driver->findElement(WebDriverBy::id('summary'));
+					//clear description
+					$songListAddFilldescription->clear();
+					//fill the description
+					$songListAddFilldescription->sendKeys('ok!');
+
+					$songListAddNew = $this->driver->findElement(WebDriverBy::cssSelector('button.button.button-gold'));
+					$setTimeout->implicitlyWait(0.5);
+					$songListAddNew->click();
 
 
 				default:
@@ -138,6 +170,6 @@ class TestMemberSystem {
 	$password = 'ss07290420';
 	$test = new TestMemberSystem;
 	$test->testLogin($host, $url, $account, $password);
-	$test->testMemberModSongList('edit');//add
+	$test->testMemberModSongList('copy');//add
 
 ?>
