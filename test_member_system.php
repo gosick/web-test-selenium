@@ -56,6 +56,35 @@ class TestMemberSystem {
 		}
 	}
 
+	public function testMusicAndAlbum($selector)
+	{	
+
+		$getSonglistDiv = $this->driver->findElement(WebDriverBy::xpath('//div[@class="container"]/nav/ul/li[1]'));
+		
+		//write javascript to set the overflow not to hide
+		/*$js = "arguments[0].style.height='auto'; arguments[0].style.overflow='scroll';";
+		$this->driver->executeScript($js, $getSonglistDiv);
+		switch ($selector) {
+			case 'music':
+				
+				$music = $this->driver->findElement(WebDriverBy::xpath('//div[@class="container"]/nav/ul/li[1]/ul/li[4]/a'));
+				$music->click();
+				break;
+
+			case 'album':
+
+				$album = $this->driver->findElement(WebDriverBy::xpath('//div[@class="container"]/nav/ul/li[1]/ul/li[5]/a'));
+				$album->click();
+				break;
+
+			default:
+				# code...
+				break;
+		}
+		*/
+	
+	}
+
 	public function listSelect($listSelect)
 	{
 		$setTimeout = $this->driver->manage()->timeouts();
@@ -188,11 +217,19 @@ class TestMemberSystem {
 				$this->listSelect($listSelect);
 				break;
 
+			case 'enter album':
+
+				$album = $this->driver->findElement(WebDriverBy::xpath('//div[@class="table"]/div[2]/ul/li[3]/div[4]/a'));
+				$album->click();
+
+				break;
+
 			default:
 				# code...
 				break;
 		}
 	}
+
 	public function testMemberModSongList($select)
 	{
 		$setTimeout = $this->driver->manage()->timeouts();
@@ -366,10 +403,11 @@ class TestMemberSystem {
 	$password = 'ss07290420';
 	$test = new TestMemberSystem;
 	$test->testLogin($host, $url, $account, $password);
-	//$test->testMemberModSongList('enter');
+	$test->testMemberModSongList('enter');
 	//add
 	$string = '貝多芬';
-	$test->testSearch($string);
-	$test->testSearchComposerWorks('add to list','temporary');
+	//$test->testSearch($string);
+	//$test->testSearchComposerWorks('play', null);
+	//$test->testMusicAndAlbum('music');
 
 ?>
