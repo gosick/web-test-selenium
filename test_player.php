@@ -135,18 +135,21 @@ class TestPlayer {
 	public function searchComposer()
 	{
 		$this->driver->findElement(WebDriverBy::xpath($this->composer))->click();
-		$s = '//div[@class="primary-content js-controller-content"]/section[1]/ul/li/a';
-		$this->driver->findElement(WebDriverBy::xpath($s))->click();
+		$pageComposerList = '//div[@class="primary-content js-controller-content"]/section[1]/ul/li/a';
+		$this->driver->findElement(WebDriverBy::xpath($pageComposerList))->click();
 		$this->pageRefresh();
 
-		$type = $this->driver->findElement(WebDriverBy::xpath('//div[@class="primary-content js-controller-content"]/div/a'));
-		$type->click();
-		$typeList = $this->driver->findElement(WebDriverBy::xpath('//div[@class="primary-content js-controller-content"]/div/div/ul/li[2]/a[1]'));
-		$typeList->click();
-		$this->driver->navigate()->refresh();
-		$work = $this->driver->findElement(WebDriverBy::xpath('//div[@class="compo-work js-composer-work"]/ul/li/ul/li[1]/a'));
-		$work->click();
-		$this->driver->navigate()->refresh();
+		$type = '//div[@class="primary-content js-controller-content"]/div/a';
+		$this->driver->findElement(WebDriverBy::xpath($type))->click();
+
+		$typeList = '//div[@class="primary-content js-controller-content"]/div/div/ul/li[2]/a[1]'; 
+		$this->driver->findElement(WebDriverBy::xpath($typeList))->click();
+	
+		$this->pageRefresh();
+		$work = '//div[@class="compo-work js-composer-work"]/ul/li/ul/li[1]/a';
+		$this->driver->findElement(WebDriverBy::xpath($work))->click();
+		
+		$this->pageRefresh();
 
 
 	}
@@ -171,17 +174,36 @@ class TestPlayer {
 		switch ($select) {
 
 			case 'play':
-				$this->wait(1);
 				$this->driver->findElement(WebDriverBy::xpath($this->play))->click();
 				break;
 			case 'pause':
-				$this->wait(1);
 				$this->driver->findElement(WebDriverBy::xpath($this->pause))->click();
 				break;
 			case 'progressBar':
-				$progress = $this->driver->findElements(WebDriverBy::xpath($this->progressBar));
-				$js = "arguments[0].style.width='75%';";
-				$this->driver->executeScript($js, $progress);
+				$nowProgress = $this->driver->findElement(WebDriverBy::xpath($this->progressBar));
+				$nowProgressX = $nowProgress->getLocation()->getX();
+				$nowProgressY = $nowProgress->getLocation()->getY();
+				$nowProgressWidth = $nowProgress->getSize()->getWidth();
+				$nowProgressHeight = $nowProgress->getSize()->getHeight();
+				$progressBar ='//div[@class="player jp-player open"]/div[3]/div[2]/div[2]/div[3]/div';
+				$progressLength = $this->driver->findElement(WebDriverBy::xpath($progressBar))->getSize()->getWidth();
+				$newPosition = $nowProgress->getLocation()->moveBy($progressLength / 2, $nowProgressHeight / 2);
+				$this->driver->getMouse()->mouseMove($nowProgress->getCoordinates());
+
+				//$this->driver->action()->click($nowProgress);
+				//$this->driver->action()->moveToElement($nowProgress, $progressLength / 2, 0);
+				//$this->driver->getMouse()->click();
+				$iconPath = '//div[@class="player jp-player open"]/div[3]/div[2]/div[2]/div[3]/div/div[2]/span';
+				$icon = $this->driver->findElement(WebDriverBy::xpath($iconPath));
+				$this->driver->action()->moveByOffset(300, 1.5)->click();
+				//$js = "arguments[0].style.width:'300px';";
+				//$nowProgress1 = $this->driver->findElements(WebDriverBy::xpath($this->progressBar));
+				//$this->driver->executeScript($js, $nowProgress1);
+				//$this->driver->action()->dragAndDropBy($icon, 300, 0);
+				
+				//$this->driver->getMouse()->mouseMove($progress->getCoordinates());
+				
+
 				break;
 			default:
 
@@ -239,19 +261,15 @@ class TestPlayer {
 <?php
 	$url = 'http://dev.muzik-online.com/tw';
 	$test = new TestPlayer($url);
-	$test->login('f56112000@gmail.com', 'ss07290420');
-	$test->checkLogin();//need to add access token
+	//$test->login('f56112000@gmail.com', 'ss07290420');
+	//$test->checkLogin();//need to add access token
 	$test->pageRefresh();
 	$test->search('貝');
 	$test->pageRefresh();
 	$test->searchComposer();
 	$test->composerWorkSelect('play');
 	$test->player('pause');
-	//$test->wait(10);
-	//$test->player('play');
-	//$test->wait(10);
-	//$test->player('pause');
-	$test->player('progressBar');
+	//$test->player('progressBar');
 	
 
 	//$test->pageRefresh();
