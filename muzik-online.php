@@ -8,6 +8,7 @@ class muzikOnlineTest extends URLChecker {
 	protected $account, $password, $passwordConfirm, $btnSend, $keyword, $searchBtn;
 	protected $periodicalTag, $memberFlag, $songListAmount, $songRepeat, $collectionAmount, $otherSongListAmount;
 	protected $mySelfFlag;
+	protected $playerFlag;
 
 	public function __construct($url) {
 
@@ -41,6 +42,7 @@ class muzikOnlineTest extends URLChecker {
 		$this->collectionAmount = 0;
 		$this->otherSongListAmount = 0;
 		$this->mySelfFlag = false;
+		$this->playerFlag = 'null';
 	}
 
 	public function checkLogin() {
@@ -48,6 +50,8 @@ class muzikOnlineTest extends URLChecker {
 		$flag = false;
 		$array = $this->cookies;
 		$size = count($array);
+		$this->playerFlag = 'true';
+
 		for($i = 0; $i < $size; $i++)
 		{
 			if($array[$i]['name'] == 'member_i18n')
@@ -766,6 +770,27 @@ class muzikOnlineTest extends URLChecker {
 		}
 	}
 
+	public function chooseLanguage($select) {
+
+		switch ($select) {
+			case 'chinese':
+				$this->driver->findElement(WebDriverBy::xpath('//div[@class="float js-float global"]/div[2]/a[1]'))->click();
+				break;
+			
+			case 'english':
+				$this->driver->findElement(WebDriverBy::xpath('//div[@class="float js-float global"]/div[2]/a[2]'))->click();
+				break;
+
+			case 'japanese':
+				$this->driver->findElement(WebDriverBy::xpath('//div[@class="float js-float global"]/div[2]/a[3]'))->click();
+				break;
+
+			default:
+				
+				break;
+		}
+	}
+	
 	public function playerheaderSelect($select) {
 
 		switch ($select) {
@@ -779,19 +804,19 @@ class muzikOnlineTest extends URLChecker {
 			case 'temporaryList':
 
 				$this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[1]/div[2]/ul/li[1]/a'))->click();
-
+				sleep(8);
 				break;
 
 			case 'myList':
 
 				$this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[1]/div[2]/ul/li[2]/a'))->click();
-
+				sleep(8);
 				break;
 
 			case 'myCollection':
 
 				$this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[1]/div[2]/ul/li[3]/a'))->click();
-
+				sleep(8);
 				break;
 
 			default:
@@ -802,78 +827,183 @@ class muzikOnlineTest extends URLChecker {
 //--------------------------------------------------//
 	public function playercontent($select, $index) {
 
-		switch ($select) {
-			case 'temporaryList':
-				
-				break;
-			
-			case 'myList':
-
-				sleep(8);
-				$collectionList = count($this->driver->findElements(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li')));
-
-				break;
-
-			case 'myCollection':
-
-				sleep(8);
-				$collectionList = count($this->driver->findElements(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li')));
-				
-				if($index > 0 && $collectionList >= $index)
-				{
-					/*
-					$item = $this->driver->findElements(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$index.']'));
-					$js = "arguments[0].scrollIntoView(true);";
-					$this->driver->executeScript($js, $item);
-					*/
-					$this->myCollectionSelect('choose', $index);
-				}
-
-				break;
-
-			default:
-				
-				break;
+		if($this->playerFlag == 'null') {
+			echo 'please login!!!'."\n";
 		}
+		else {
+			switch ($select) {
+				case 'temporaryList':
+
+					if($this->checkLogin() == true) {
+						$this->playerFlag = 'temporaryList';
+					}
+					else {
+						$this->playerFlag = 'null';
+						break;
+					}
+
+					break;
+				
+				case 'myList':
+
+					if($this->checkLogin() == true) {
+						$this->playerFlag = 'myList';
+					}
+					else {
+						$this->playerFlag = 'null';
+						break;
+					}
+
+					sleep(8);
+					$myList = count($this->driver->findElements(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li'))) - 1;
+
+					if($index > 0 && $myList >= $index) {
+						//$this->myPlayerContentSelect('choose', $index);
+						//$this->myPlayerContentSelect('edit', $index);
+						//$this->myPlayerContentSelect('del', 2);
+						$this->myPlayerContentSelect('new list', $index);
+					}
+
+					break;
+
+				case 'myCollection':
+
+					if($this->checkLogin() == true) {
+						$this->playerFlag = 'myCollection';
+					}
+					else {
+						$this->playerFlag = 'null';
+						break;
+					}
+
+					sleep(8);
+
+					$collectionList = count($this->driver->findElements(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li')));
+					
+					if($index > 0 && $collectionList >= $index) {
+						/*
+						$item = $this->driver->findElements(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$index.']'));
+						$js = "arguments[0].scrollIntoView(true);";
+						$this->driver->executeScript($js, $item);
+						*/
+						$this->myPlayerContentSelect('choose', $index);
+						$this->myPlayerContentSelect('del', 3);
+						
+					}
+
+					break;
+
+				default:
+					
+					break;
+			}
+		}
+		
 	}
 
-	public function myCollectionSelect($select, $index) {
+
+
+	public function myPlayerContentSelect($select, $index) {
 		
 		$this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$index.']/div[1]/a'))->click();
 		sleep(8);
 		$songListNumber = count($this->driver->findElements(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$index.']/ul/li')));
+
 		switch ($select) {
 
 			case 'choose':
+				if($this->playerFlag == 'myCollection') {
 
-				$item = $this->driver->findElements(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$index.']/ul/li[2]'));//ul/li[$k]
-				$js = "arguments[0].scrollIntoView(true);";
-				$this->driver->executeScript($js, $item);
-		 		$this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$index.']/ul/li[2]/div/a'))->click();//ul/li[$k]
-		 		$songAmount = count($this->driver->findElements(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[2]/div[2]/div[2]/ul/li')));
+					$item = $this->driver->findElements(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$index.']/ul/li[2]'));//ul/li[$k]
+					$js = "arguments[0].scrollIntoView(true);";
+					$this->driver->executeScript($js, $item);
+			 		$this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$index.']/ul/li[2]/div/a'))->click();//ul/li[$k]
+			 		$songAmount = count($this->driver->findElements(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[2]/div[2]/div[2]/ul/li')));
 
-		 		$indextem = $this->driver->findElements(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[2]/div[2]/div[2]/ul/li[2]'));//2
-				$js = "arguments[0].scrollIntoView(true);";
-				$this->driver->executeScript($js, $item);
-		 		$this->myCollectionSongFunc('info', 2);
-		 		sleep(4);
+			 		$indextem = $this->driver->findElements(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[2]/div[2]/div[2]/ul/li[2]'));//2
+					$js = "arguments[0].scrollIntoView(true);";
+
+					$this->driver->executeScript($js, $item);
+			 		$this->playerSongContentfunc('info', 2);
+			 		$this->playerSongContentfunc('play', 2);
+			 		$this->playerSongContentfunc('choose', 2);
+			 		$this->playerSongContentfunc('download', 2);
+			 		$this->playerSongContentfunc('add to list', 2);
+			 		$this->listSelect('temporary', 2);
+			 		$this->playerSongContentfunc('del', 2);
+		 			sleep(4);
+				}
+				else if($this->playerFlag == 'myList') {
+
+					$this->playerSongContentfunc('info', 2);
+			 		$this->playerSongContentfunc('play', 2);
+			 		$this->playerSongContentfunc('choose', 2);
+			 		$this->playerSongContentfunc('download', 2);
+			 		$this->playerSongContentfunc('add to list', 2);
+			 		$this->listSelect('temporary', 2);
+			 		$this->playerSongContentfunc('del', 2);
+		 			sleep(4);
+				}
+				
 		 	
 				break;
 
 			case 'del':
 
-				$this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$index.']/a'))->click();
-				sleep(1);
-				$this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$index.']/div[2]/a'))->click();
+				if($this->playerFlag == 'myCollection') {
+
+					$this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$index.']/a'))->click();
+					sleep(1);
+					$this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$index.']/div[2]/a'))->click();
+				}
+				else if($this->playerFlag == 'myList') {
+
+					$this->driver->getMouse()->mouseMove($this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$index.']'))->getCoordinates());
+					$this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$index.']/div[2]/a[2]'))->click();
+					sleep(1);
+					$this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$index.']/div[3]/a'))->click();
+				}
+				
 				break;
-			
+
+			case 'edit':
+
+				if($this->playerFlag == 'myList') {
+
+					$this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$index.']/div[2]/a[1]'))->click();
+					sleep(1);
+					$this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$index.']/form/input'))->clear()->sendKeys('abc');
+					$this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$index.']/form/button'))->click();
+				}
+				else {
+					break;
+				}
+				break;
+
+			case 'new list':
+
+				if($this->playerFlag == 'myList') {
+					
+					$myList = count($this->driver->findElements(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li')));
+					$item = $this->driver->findElements(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$myList.']'));
+					$js = "arguments[0].scrollIntoView(true);";
+					$this->driver->executeScript($js, $item);
+					$this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$myList.']/div/a'))->click();
+					$this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$myList.']/li/form/input'))->clear()->sendKeys('aadfa');
+					$this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$myList.']/li/form/button'))->click();
+				}
+				else {
+					break;
+				}
+				break;
+
 			default:
 				
 				break;
 		}
 	}
 
-	public function myCollectionSongFunc($select, $index){
+	public function playerSongContentfunc($select, $index){
 
 		sleep(5);
 		switch ($select) {
@@ -907,8 +1037,15 @@ class muzikOnlineTest extends URLChecker {
 
 			case 'del':
 
-				$this->driver->getMouse()->mouseMove($this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[2]/div[2]/div[2]/ul/li['.$index.']/div[3]/div'))->getCoordinates());
-				$this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[2]/div[2]/div[2]/ul/li['.$index.']/div[3]/div/div/a[5]'))->click();
+				if($this->playerFlag == 'myCollection') {
+					echo 'aaa';
+					break;
+				}
+				else {
+					$this->driver->getMouse()->mouseMove($this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[2]/div[2]/div[2]/ul/li['.$index.']/div[3]/div'))->getCoordinates());
+					$this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[2]/div[2]/div[2]/ul/li['.$index.']/div[3]/div/div/a[5]'))->click();
+				}
+				
 				break;
 
 			default:
@@ -917,26 +1054,7 @@ class muzikOnlineTest extends URLChecker {
 		}
 	}
 
-	public function chooseLanguage($select)
-	{
-		switch ($select) {
-			case 'chinese':
-				$this->driver->findElement(WebDriverBy::xpath('//div[@class="float js-float global"]/div[2]/a[1]'))->click();
-				break;
-			
-			case 'english':
-				$this->driver->findElement(WebDriverBy::xpath('//div[@class="float js-float global"]/div[2]/a[2]'))->click();
-				break;
-
-			case 'japanese':
-				$this->driver->findElement(WebDriverBy::xpath('//div[@class="float js-float global"]/div[2]/a[3]'))->click();
-				break;
-
-			default:
-				
-				break;
-		}
-	}
+	
 
 	
 	//-------------haven't been completed------------------------//
@@ -1064,7 +1182,7 @@ class muzikOnlineTest extends URLChecker {
 
 <?php 
 
-	$url = 'http://dev.muzik-online.com/tw/service';
+	$url = 'http://dev.muzik-online.com/tw';
 	$test = new muzikOnlineTest($url);
 
 	$menuList = $test->countMenuList();
@@ -1074,64 +1192,20 @@ class muzikOnlineTest extends URLChecker {
 	sleep(2);
 	$test->loginTest('f56112000@gmail.com', 'ss07290420');
 	sleep(2);
-	$test->menu('memberProfile', $menuList['memberProfile'], 0);
-	sleep(2);
-
-	/*
-	sleep(2);
-	$test->memberSelect('collection');
-	sleep(2);
-	$test->memberCollection('enter', 4);
-	sleep(2);
-	$test->memberSelect('collection');
-	sleep(2);
-	$test->memberCollection('collect', 1);
-	sleep(2);
-	$test->memberCollection('collect', 1);
-	sleep(2);
-	$test->memberCollection('enter', 1);
-	sleep(2);
-	$test->memberSelect('songList');
-	sleep(2);
-	$test->memberSongList('copy', 1);
-	sleep(2);
-	$test->memberSongList('enter', 1);
-	sleep(2);
-	$test->songSelect('add to list', 2);
-	sleep(2);
-	$test->listSelect('temporary', 0);
-	*/
-	sleep(2);
 	$test->playerfooterSelect('open');
 	sleep(2);
-	$test->playerheaderSelect('myCollection');
+	//$test->playerheaderSelect('myList');
 	sleep(2);
-	$test->playercontent('myCollection', 2);
-	sleep(10);
-	$test->myCollectionSongFunc('play', 3);
-	sleep(2);
-	$test->playerfooterSelect('pause');
-	sleep(2);
-	$test->myCollectionSongFunc('info', 3);
-	sleep(2);
-	$test->myCollectionSongFunc('play', 3);
-	sleep(2);
-	$test->myCollectionSongFunc('download', 3);
-	sleep(2);
-	$test->myCollectionSongFunc('add to list', 3);
-	sleep(2);
-	$test->listSelect('temporary', 1);
-	sleep(2);
+	//$test->playercontent('myList', 1);
 	$test->playerheaderSelect('temporaryList');
+	//sleep(2);
+	//$test->playerheaderSelect('myList');
 	sleep(2);
-	$test->playerheaderSelect('now playing');
-	sleep(10);
-	$test->myCollectionSongFunc('add to list', 3);
+	//$test->playerheaderSelect('now playing');
+	//$test->menu('memberProfile', $menuList['memberProfile'], 0);
 	sleep(2);
-	$test->listSelect('new list', 1);
-	sleep(2);
-	$test->playerheaderSelect('myList');
-	sleep(2);
+
 	$test->menu('logout', $menuList['logout'], 0);
+
 
 ?>
