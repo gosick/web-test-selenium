@@ -50,6 +50,7 @@ class muzikOnlineTest extends URLChecker {
 		$flag = false;
 		$array = $this->cookies;
 		$size = count($array);
+
 		$this->playerFlag = 'true';
 
 		for($i = 0; $i < $size; $i++)
@@ -824,7 +825,7 @@ class muzikOnlineTest extends URLChecker {
 				break;
 		}
 	}
-//--------------------------------------------------//
+
 	public function playercontent($select, $index) {
 
 		if($this->playerFlag == 'null') {
@@ -832,6 +833,7 @@ class muzikOnlineTest extends URLChecker {
 		}
 		else {
 			switch ($select) {
+
 				case 'temporaryList':
 
 					if($this->checkLogin() == true) {
@@ -842,6 +844,18 @@ class muzikOnlineTest extends URLChecker {
 						break;
 					}
 
+					sleep(8);
+					$temporaryList = count($this->driver->findElements(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[2]/div[2]/div[2]/ul/li')));
+
+					if($index > 0 && $temporaryList >= $index) {
+
+						$this->playerSongContentfunc('play', $index);
+						$this->playerSongContentfunc('choose', $index);
+						$this->playerSongContentfunc('info', $index);
+						$this->playerSongContentfunc('download', $index);
+						$this->playerSongContentfunc('add to list', $index);
+						$this->playerSongContentfunc('del', $index);
+					}
 					break;
 				
 				case 'myList':
@@ -861,7 +875,7 @@ class muzikOnlineTest extends URLChecker {
 						//$this->myPlayerContentSelect('choose', $index);
 						//$this->myPlayerContentSelect('edit', $index);
 						//$this->myPlayerContentSelect('del', 2);
-						$this->myPlayerContentSelect('new list', $index);
+						//$this->myPlayerContentSelect('new list', $index);
 					}
 
 					break;
@@ -886,8 +900,8 @@ class muzikOnlineTest extends URLChecker {
 						$js = "arguments[0].scrollIntoView(true);";
 						$this->driver->executeScript($js, $item);
 						*/
-						$this->myPlayerContentSelect('choose', $index);
-						$this->myPlayerContentSelect('del', 3);
+						//$this->myPlayerContentSelect('choose', $index);
+						//$this->myPlayerContentSelect('del', 3);
 						
 					}
 
@@ -1038,7 +1052,6 @@ class muzikOnlineTest extends URLChecker {
 			case 'del':
 
 				if($this->playerFlag == 'myCollection') {
-					echo 'aaa';
 					break;
 				}
 				else {
@@ -1054,67 +1067,8 @@ class muzikOnlineTest extends URLChecker {
 		}
 	}
 
-	
 
 	
-	//-------------haven't been completed------------------------//
-	public function selectPeriodical($flag)
-	{
-		$url = '//div[@class="mag-type"]/ul/li['.$flag.']/a';
-		$this->driver->findElement(WebDriverBy::xpath($url))->click();
-
-		if($flag == 0)
-		{
-			$this->periodicalTag = 'muzik';
-			$this->periodicalMuzikTest($flag);
-		}
-
-		if($flag == 1)
-		{
-			$this->periodicalTag = 'category';
-			$this->periodicalCategory($flag);
-		}
-	}
-
-	public function periodicalMuzikTest($flag)
-	{
-		/*------this is the menu dropdown for select the magazine--*/
-		// open the menu
-		$menu = '//div[@class="mag-year dropdown clearfix"]/div/a';
-		$this->driver->findElement(WebDriverBy::xpath($menu))->click();
-		$menuList = '//div[@class="list dropdown-menu"]/ul/li';
-		$list = $this->driver->findElements(WebDriverBy::xpath($menuList));
-		$length = count($list);
-		$url = '//div[@class="list dropdown-menu"]/ul/li[3]/a';
-		$this->driver->findElement(WebDriverBy::xpath($url))->click();
-	}
-
-
-	public function periodicalCategory($flag)
-	{
-		switch (1) {
-			case 'special_column':
-				# code...
-				break;
-			
-			case 'people_profile':
-				break;
-
-			case 'elegant_living':
-				break;
-
-			case 'encyclopedia':
-				break;
-
-			case 'publication_comment':
-				break;
-
-			default:
-				break;
-		}
-	}
-
-
 //----------------------------------------//
 
 	public function getUrlList($url)
@@ -1190,22 +1144,12 @@ class muzikOnlineTest extends URLChecker {
 	sleep(2);
 	$test->menu('login', $menuList['login'], 0);
 	sleep(2);
-	$test->loginTest('f56112000@gmail.com', 'ss07290420');
+	$test->loginTest('gosick@test.com', 'gosick');
 	sleep(2);
-	$test->playerfooterSelect('open');
-	sleep(2);
-	//$test->playerheaderSelect('myList');
-	sleep(2);
-	//$test->playercontent('myList', 1);
-	$test->playerheaderSelect('temporaryList');
-	//sleep(2);
-	//$test->playerheaderSelect('myList');
-	sleep(2);
-	//$test->playerheaderSelect('now playing');
-	//$test->menu('memberProfile', $menuList['memberProfile'], 0);
-	sleep(2);
+	
 
 	$test->menu('logout', $menuList['logout'], 0);
 
+	//$test->playerfooterSelect();
 
 ?>
