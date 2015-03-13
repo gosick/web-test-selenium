@@ -17,10 +17,8 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
   	const CONNECT_TIMEOUT_MS = 500;
 
 	private function elementSetUp() {
-
 		$this->host = 'http://localhost:4444/wd/hub';
-        //$this->capabilities = array(\WebDriverCapabilityType::BROWSER_NAME=>'firefox',\WebDriverCapabilityType::BROWSER_NAME=>'chrome');
-		$this->capabilities = DesiredCapabilities::firefox();
+        $this->capabilities = array(\WebDriverCapabilityType::BROWSER_NAME => 'chrome', \WebDriverCapabilityType::BROWSER_NAME => 'firefox');
         $this->account = '';
         $this->password = '';
         $this->songListTitle = '';
@@ -48,7 +46,7 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
 
 	public function wait($second) { $this->setTimeout->implicitlyWait($second); }
 
-/*------------------account and password generator--------------------------*/
+/*------------------fill and check song list title description---------------------*/
 
     public function fillSongListTitleAndDescription($title, $description) {
         $this->songListTitle = $title;
@@ -71,6 +69,8 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
         
     }
 
+/*------------------fill and check song list title description---------------------*/
+/*-------------------------account and password generator--------------------------*/
     public function memberAccountGenerate() {
         $length = 10;
         $account = '';
@@ -106,8 +106,8 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
         return $password;
     }
 
-/*------------------account and password generator--------------------------*/
-/*-------------------------------player-------------------------------------*/
+/*-------------------------account and password generator--------------------------*/
+/*--------------------------------------player-------------------------------------*/
     
     public function playerOpen() {
         sleep(3);
@@ -418,7 +418,7 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
                 break;
         }
     }
-/*-------------------------------player-------------------------------------*/
+/*--------------------------------------player-------------------------------------*/
     public function menu($select, $total, $index) {
 
 
@@ -429,6 +429,7 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
                 $this->assertFalse($index > $total || $index <= 0, "all music element does not exist");
                 $allMusic = '//div[@class="container"]/nav/ul/li[1]';
                 $this->driver->getMouse()->mouseMove($this->driver->findElement(WebDriverBy::xpath($allMusic))->getCoordinates());
+                sleep(1);
                 $url = '//div[@class="container"]/nav/ul/li[1]/ul/li['.$index.']/a';
                 $this->driver->findElement(WebDriverBy::xpath($url))->click();
                 $this->pageRefresh();
@@ -439,6 +440,7 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
                 $this->assertFalse($index > $total || $index <= 0, "article element does not exist");
                 $article = '//div[@class="container"]/nav/ul/li[2]';
                 $this->driver->getMouse()->mouseMove($this->driver->findElement(WebDriverBy::xpath($article))->getCoordinates());
+                sleep(1);
                 $url = '//div[@class="container"]/nav/ul/li[2]/ul/li['.$index.']/a';
                 $this->driver->findElement(WebDriverBy::xpath($url))->click();
                 $this->pageRefresh();
@@ -457,6 +459,7 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
                 $this->assertFalse($index > $total || $index <= 0, "periodical element does not exist");
                 $periodical = '//div[@class="container"]/nav/ul/li[4]';
                 $this->driver->getMouse()->mouseMove($this->driver->findElement(WebDriverBy::xpath($periodical))->getCoordinates());
+                sleep(1);
                 $url = '//div[@class="container"]/nav/ul/li[4]/ul/li['.$index.']/a';
                 $this->driver->findElement(WebDriverBy::xpath($url))->click();
                 $this->pageRefresh();
@@ -467,6 +470,7 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
                 $this->assertFalse($index > $total || $index <= 0, "member center element does not exist");
                 $periodical = '//div[@class="container"]/nav/ul/li[5]';
                 $this->driver->getMouse()->mouseMove($this->driver->findElement(WebDriverBy::xpath($periodical))->getCoordinates());
+                sleep(1);
                 $url = '//div[@class="container"]/nav/ul/li[5]/ul/li['.$index.']/a';
                 $this->driver->findElement(WebDriverBy::xpath($url))->click();
                 $this->pageRefresh();
@@ -657,7 +661,7 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
 
             case 'edit':
 
-                //--edit a song list--//
+                //edit a song list
                 $this->assertNotEquals(0, $this->songListAmount, "song list is null, you cannot edit");
                 $this->assertTrue($index > 0 && $index <= $this->songListAmount && $this->songListAmount > 0 && $this->mySelfFlag == true, "index is less than 0 or myself is false");
                 $getSonglistDiv = $this->driver->findElement(WebDriverBy::xpath('//div[@class="listenContentInner clearfix"]/div['.$index.']/div'));
@@ -670,7 +674,7 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
 
             case 'copy':
 
-                //--copy a song list--//
+                //copy a song list
                 $this->assertNotEquals(0, $this->songListAmount, "song list is null, you cannot copy");
                 $this->assertTrue($index > 0 && $index <= $this->songListAmount && $this->songListAmount > 0, "index is less than 0");
                 $number = $this->songListAmount + 1;
@@ -922,65 +926,109 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
     }
 
     public function getUrlList($url) {
+
         //get homepage contents
         $homepage = file_get_contents($url);
-        
+        mb_convert_encoding($homepage, 'UTF-8');
         //use regex parse http:// or https:// or ftp:// url
+        mb_regex_encoding('UTF-8');
+        
         preg_match_all("/(http|https|ftp):\/\/[^<>[:space:]]+[[:alnum:]#?\/&=+%_]/", $homepage, $match);
         $list = $match[0];
 
+        $recordList = Array();
+
         
-        foreach ($list as $value)
-        {
+        foreach ($list as $value) {
+
             //replace '/ and ";var to null string  
             $result = preg_replace("/\'\/|\"(;var)/", "", $value);
+            $result = utf8_encode($result);
             // use result as url to pass 
-            $requestcode = $this->responseCode(5000, $result);
-            echo $requestcode."\t";
-            echo $result."\n\n";
-        }
+            $requestcode = strval($this->responseCode(10000, $result));
 
+            /*if($requestcode == "0") {
+                $requestcode = strval($this->responseCode(10000, $result));
+                $temp = array("responseCode" => $requestcode, "url" => $result);
+                array_push($recodeList, $temp);
+            }*/
+
+            if((strpos($requestcode, "4", 0) === 0) ||(strpos($requestcode, "5", 0) === 0)) {
+                $temp = array("responseCode" => $requestcode, "url" => $result);
+                array_push($recordList, $temp);
+            }
+            
+        }
+        
         //use regex parse href="" url
-        preg_match_all("/(href=\")\/[^<>[:space:]]+[[:alnum:]#?\/&=+%_]/",$homepage, $match1);
+        preg_match_all("/(href=\")\/[^<>[:space:]]+[[:alnum:]#?\/&=+%_]/", $homepage, $match1);
         $list1 = $match1[0];
 
-        foreach ($list1 as $value)
-        {
+        foreach ($list1 as $value) {
+
             //replace href=" to null string
             $result = preg_replace("/(href=\")/", "", $value);
-            if(preg_match("/\/(tw)\//", $result)||preg_match("/\/(ysm)/", $result)||preg_match("/\/css/", $result))
-            {
+            if(preg_match("/\/(tw)\//", $result)||preg_match("/\/(ysm)/", $result)||preg_match("/\/css/", $result)) {
                 // combine http://dev.muzik-online.com with \tw\ , \ysm , \css
-                $string = 'http://dev.muzik-online.com'.$result;
+                $string = utf8_encode('http://dev.muzik-online.com'.$result);
                 // use result string as url to pass
-                $requestcode = $this->responseCode(5000, $string);
-                echo $requestcode."\t";
-                echo $string."\n\n";
+                $requestcode = strval($this->responseCode(10000, $string));
+
+                /*if($requestcode == "0") {
+                    $requestcode = strval($this->responseCode(10000, $result));
+                    $temp = array("responseCode" => $requestcode, "url" => $result);
+                    array_push($recodeList, $temp);
+                }*/
+
+                if((strpos($requestcode, "4", 0) === 0) ||(strpos($requestcode, "5", 0) === 0)) {
+                    $temp = array("responseCode" => $requestcode, "url" => $string);
+                    array_push($recordList, $temp);
+                }
+
+              
             }
-            else if(preg_match("/\/(concert)/", $result)||preg_match("/\/(article)/", $result)||preg_match("/\/(listen)/", $result)||preg_match("/\/(download)/", $result)||preg_match("/\/(cashflow)/", $result)||preg_match("/\/(periodical)/", $result))
-            {
+            else if(preg_match("/\/(concert)/", $result)||preg_match("/\/(article)/", $result)||preg_match("/\/(listen)/", $result)||preg_match("/\/(download)/", $result)||preg_match("/\/(cashflow)/", $result)||preg_match("/\/(periodical)/", $result)) {
                 //combine http://dev.muzik-online.com/tw with \concert , \article , \listen , \download, \cashflow, \periodical
-                $string = 'http://dev.muzik-online.com/tw'.$result;
+                $string = utf8_encode('http://dev.muzik-online.com/tw'.$result);
                 // use result string as url to pass
-                $requestcode = $this->responseCode(5000, $string);
-                echo $requestcode."\t";
-                echo $string."\n\n";
+                $requestcode = strval($this->responseCode(10000, $string));
+
+                /*if($requestcode == "0") {
+                    $requestcode = strval($this->responseCode(10000, $result));
+                    $temp = array("responseCode" => $requestcode, "url" => $result);
+                    array_push($recodeList, $temp);
+                }*/
+
+                if((strpos($requestcode, "4", 0) === 0) ||(strpos($requestcode, "5", 0) === 0)) {
+                    $temp = array("responseCode" => $requestcode, "url" => $string);
+                    array_push($recordList, $temp);
+                }
+             
             }
-            else
-            {
+            else {
                 //other website 
-                $string = 'http:'.$result;
-                $requestcode = $this->responseCode(5000, $string);
-                echo $requestcode."\t";
-                echo $string."\n\n";
+                $string = utf8_encode('http:'.$result);
+                $requestcode = strval($this->responseCode(10000, $string));
+
+                /*if($requestcode == "0") {
+                    $requestcode = strval($this->responseCode(10000, $result));
+                    $temp = array("responseCode" => $requestcode, "url" => $result);
+                    array_push($recodeList, $temp);
+                }*/
+
+                if((strpos($requestcode, "4") === 0) ||(strpos($requestcode, "5") === 0)) {
+                    $temp = array("responseCode" => $requestcode, "url" => $string);
+                    array_push($recordList, $temp);
+                }
             }
         }
 
+        return $recordList;
     }
 
 /*---------------------------responseCode and get url list------------------------*/
-	public function setUp()
-    {
+	public function setUp() {
+
     	$this->elementSetUp();
         $this->driver = RemoteWebDriver::create($this->host, $this->capabilities, 30000);
         $this->refresh = $this->driver->navigate();
@@ -988,110 +1036,136 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
 		$this->setTimeout = $this->driver->manage()->timeouts();
     }
 
-    public function teardown()
-    {
+    public function teardown() {
+
     	$this->driver->close();
     }
 
-/*--------------------------test Menu pages-----------------------------
-    public function testMenuAllMusic() {
+    
+/*-------------------------- test response code ------------------------------
 
-    	$total = $this->countMenuList();
-    	$this->menu('allMusic', $total['allMusic'], 3);
-    	sleep(1);
-    	$this->menu('allMusic', $total['allMusic'], 6);
+    public function testMemberCenterServiceResponseCode() {
+        $total = $this->countMenuList();
+        $this->menu('memberCenter', $total['memberCenter'], 1);
+        $url = $this->driver->getCurrentURL();
+        $result = $this->getUrlList($url);
+        $this->assertNull($result, "responseCode contains: 4xx, 5xx");
     }
 
-    public function testMenuArticle() {
-
-    	$total = $this->countMenuList();
-    	$this->menu('article', $total['article'], 2);
-    	sleep(1);
-    	$this->menu('article', $total['article'], 4);
+    public function testMemberCenterCashflowResponseCode() {
+        $total = $this->countMenuList();
+        $this->menu('memberCenter', $total['memberCenter'], 2);
+        $url = $this->driver->getCurrentURL();
+        $result = $this->getUrlList($url);
+        $this->assertNull($result, "responseCode contains: 4xx, 5xx");
     }
 
-    public function testMenuConcert() {
-
-    	$total = $this->countMenuList();
-    	$this->menu('concert', $total['concert'], 1);
-    	sleep(1);
-    	$this->menu('concert', $total['concert'], 0);
+    public function testPeriodicalMuzikResponseCode() {
+        $total = $this->countMenuList();
+        $this->menu('periodical', $total['periodical'], 1);
+        $url = $this->driver->getCurrentURL();
+        $result = $this->getUrlList($url);
+        $this->assertNull($result, "responseCode contains: 4xx, 5xx");
     }
 
-    public function testMenuPeriodical() {
-    	$total = $this->countMenuList();
-    	$this->menu('periodical', $total['periodical'], 2);
-    	sleep(1);
-    	$this->menu('periodical', $total['periodical'], 4);
+    public function testPeriodicalAllMusicResponseCode() {
+        $total = $this->countMenuList();
+        $this->menu('periodical', $total['periodical'], 2);
+        $url = $this->driver->getCurrentURL();
+        $result = $this->getUrlList($url);
+        $this->assertNull($result, "responseCode contains: 4xx, 5xx");
+    }
+
+    public function testConcertResponseCode() {
+        $total = $this->countMenuList();
+        $this->menu('concert', $total['concert'], 1);
+        $url = $this->driver->getCurrentURL();
+        $result = $this->getUrlList($url);
+        $this->assertNull($result, "responseCode contains: 4xx, 5xx");
+    }
+
+    public function testArticleFocusResponseCode() {
+        $total = $this->countMenuList();
+        $this->menu('article', $total['article'], 1);
+        $url = $this->driver->getCurrentURL();
+        $result = $this->getUrlList($url);
+        $this->assertNull($result, "responseCode contains: 4xx, 5xx");
+    }
+
+    public function testArticleCommodifyResponseCode() {
+        $total = $this->countMenuList();
+        $this->menu('article', $total['article'], 2);
+        $url = $this->driver->getCurrentURL();
+        $result = $this->getUrlList($url);
+        $this->assertNull($result, "responseCode contains: 4xx, 5xx");
+    }
+
+    public function testArticleExpertResponseCode() {
+        $total = $this->countMenuList();
+        $this->menu('article', $total['article'], 3);
+        $url = $this->driver->getCurrentURL();
+        $result = $this->getUrlList($url);
+        $this->assertNull($result, "responseCode contains: 4xx, 5xx");  
+    }
+
+    public function testListenDjResponseCode() {
+        $total = $this->countMenuList();
+        $this->wait(2);
+        $this->menu('allMusic', $total['allMusic'], 1);
+        $url = $this->driver->getCurrentURL();
+        $result = $this->getUrlList($url);
+        $this->assertNull($result, "responseCode contains: 4xx, 5xx");  
+    }
+
+    public function testListenMemberResponseCode() {
+        $total = $this->countMenuList();
+        $this->wait(2);
+        $this->menu('allMusic', $total['allMusic'], 2);
+        $url = $this->driver->getCurrentURL();
+        $result = $this->getUrlList($url);
+        $this->assertNull($result, "responseCode contains: 4xx, 5xx");  
+    }
+
+    public function testListenThemeResponseCode() {
+        $total = $this->countMenuList();
+        $this->wait(2);
+        $this->menu('allMusic', $total['allMusic'], 3);
+        $url = $this->driver->getCurrentURL();
+        $result = $this->getUrlList($url);
+        $this->assertNull($result, "responseCode contains: 4xx, 5xx");  
+    }
+
+    public function testListenMusicTwResponseCode() {
+        $total = $this->countMenuList();
+        $this->wait(2);
+        $this->menu('allMusic', $total['allMusic'], 4);
+        $url = $this->driver->getCurrentURL();
+        $result = $this->getUrlList($url);
+        $this->assertNull($result, "responseCode contains: 4xx, 5xx");
     }
 
 
-    public function testMenuMemberCenter() {
-    	$total = $this->countMenuList();
-    	$this->menu('memberCenter', $total['memberCenter'], 1);
-    	sleep(1);
-    	$this->menu('memberCenter', $total['memberCenter'], 4);
+    public function testListenAlbumResponseCode() {
+        $total = $this->countMenuList();
+        $this->wait(2);
+        $this->menu('allMusic', $total['allMusic'], 5);
+        $url = $this->driver->getCurrentURL();
+        $result = $this->getUrlList($url);
+        $this->assertNull($result, "responseCode contains: 4xx, 5xx");
     }
 
-
-    public function testMenuLogin() {
-    	$total = $this->countMenuList();
-    	$this->menu('login', $total['login'], 1);
+    public function testHomepageResponseCode() {
+        $total = $this->countMenuList();
+        $this->wait(2);
+        $this->menu('homepage', $total['homepage'], 1);
+        $url = $this->driver->getCurrentURL();
+        $result = $this->getUrlList($url);
+        $this->assertNull($result, "responseCode contains: 4xx, 5xx");
     }
 
-    public function testMenuRegister() {
-    	$total = $this->countMenuList();
-    	$this->menu('register', $total['register'], 1);
-    }
-
-    public function testMenuHomepage() {
-    	$total = $this->countMenuList();
-    	$this->menu('homepage', $total['homepage'], 1);
-    }
-    public function testLogin() {
-    	$total = $this->countMenuList();
-    	$this->menu('login', $total['login'], 1);
-    	sleep(2);
-    	$this->login('gosick@test.com','gosick');
-
-    }
-
-    public function testMenuLogout() {
-    	$total = $this->countMenuList();
-    	$this->menu('login', $total['login'], 1);
-    	sleep(2);
-    	$this->login('gosick@test.com', 'gosick');
-    	sleep(2);
-    	$this->menu('logout', $total['logout'], 1);
-    	sleep(2);
-
-    }
-
-    public function testMenuPayment() {
-    	$total = $this->countMenuList();
-    	$this->menu('login', $total['login'], 1);
-    	sleep(2);
-    	$this->login('gosick@test.com', 'gosick');
-    	sleep(2);
-    	$this->pageRefresh();
-    	sleep(1);
-    	$this->menu('payment', $total['payment'], 1);
-    	sleep(2);
-    }
-
-    public function testMenuMemberProfile() {
-    	$total = $this->countMenuList();
-    	$this->menu('login', $total['login'], 1);
-    	sleep(2);
-    	$this->login('gosick@test.com', 'gosick');
-    	sleep(2);
-    	$this->pageRefresh();
-    	sleep(1);
-    	$this->menu('memberProfile', $total['memberProfile'], 1);
-    	sleep(2);
-    }
-
---------------------------test Menu pages-----------------------------*/
+-------------------------- test response code ------------------------------*/
+    
+  
 /*-----------------------test member profile---------------------------
     public function testMenuMemberProfileSongListOperationAdd() {
     	$total = $this->countMenuList();
@@ -1454,114 +1528,6 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
     }
 
 -----------------------test member profile----------------------------------*/
-/*-------------------------- test response code ------------------------------
-
-    public function testMemberCenterServiceResponseCode() {
-    	$total = $this->countMenuList();
-    	$this->menu('memberCenter', $total['memberCenter'], 1);
-    	$url = $this->driver->getCurrentURL();
-    	$this->getUrlList($url);
-    }
-
-    public function testMemberCenterCashflowResponseCode() {
-    	$total = $this->countMenuList();
-    	$this->menu('memberCenter', $total['memberCenter'], 2);
-    	$url = $this->driver->getCurrentURL();
-    	$this->getUrlList($url);
-    }
-
-    public function testPeriodicalMuzikResponseCode() {
-    	$total = $this->countMenuList();
-    	$this->menu('periodical', $total['periodical'], 1);
-    	$url = $this->driver->getCurrentURL();
-    	$this->getUrlList($url);
-    }
-
-    public function testPeriodicalAllMusicResponseCode() {
-    	$total = $this->countMenuList();
-    	$this->menu('periodical', $total['periodical'], 2);
-    	$url = $this->driver->getCurrentURL();
-    	$this->getUrlList($url);
-    }
-
-    public function testConcertResponseCode() {
-    	$total = $this->countMenuList();
-    	$this->menu('concert', $total['concert'], 1);
-    	$url = $this->driver->getCurrentURL();
-    	$this->getUrlList($url);
-    }
-
-    public function testArticleFocusResponseCode() {
-    	$total = $this->countMenuList();
-    	$this->menu('article', $total['article'], 1);
-    	$url = $this->driver->getCurrentURL();
-    	$this->getUrlList($url);
-    }
-
-    public function testArticleCommodifyResponseCode() {
-    	$total = $this->countMenuList();
-    	$this->menu('article', $total['article'], 2);
-    	$url = $this->driver->getCurrentURL();
-    	$this->getUrlList($url);	
-    }
-
-    public function testArticleExpertResponseCode() {
-    	$total = $this->countMenuList();
-    	$this->menu('article', $total['article'], 3);
-    	$url = $this->driver->getCurrentURL();
-    	$this->getUrlList($url);	
-    }
-
-   	public function testListenDjResponseCode() {
-		$total = $this->countMenuList();
-		$this->wait(2);
-    	$this->menu('allMusic', $total['allMusic'], 1);
-    	$url = $this->driver->getCurrentURL();
-    	$this->getUrlList($url);	
-   	}
-
-   	public function testListenMemberResponseCode() {
-		$total = $this->countMenuList();
-		$this->wait(2);
-    	$this->menu('allMusic', $total['allMusic'], 2);
-    	$url = $this->driver->getCurrentURL();
-    	$this->getUrlList($url);	
-   	}
-
-   	public function testListenThemeResponseCode() {
-		$total = $this->countMenuList();
-		$this->wait(2);
-    	$this->menu('allMusic', $total['allMusic'], 3);
-    	$url = $this->driver->getCurrentURL();
-    	$this->getUrlList($url);	
-   	}
-
-   	public function testListenMusicTwResponseCode() {
-		$total = $this->countMenuList();
-		$this->wait(2);
-    	$this->menu('allMusic', $total['allMusic'], 4);
-    	$url = $this->driver->getCurrentURL();
-    	$this->getUrlList($url);	
-   	}
-
-
-   	public function testListenAlbumResponseCode() {
-		$total = $this->countMenuList();
-		$this->wait(2);
-    	$this->menu('allMusic', $total['allMusic'], 5);
-    	$url = $this->driver->getCurrentURL();
-    	$this->getUrlList($url);	
-   	}
-
-   	public function testHomepageResponseCode() {
-		$total = $this->countMenuList();
-		$this->wait(2);
-    	$this->menu('homepage', $total['homepage'], 1);
-    	$url = $this->driver->getCurrentURL();
-    	$this->getUrlList($url);	
-   	}
-
--------------------------- test response code ------------------------------*/
 /*------------------------ test player ---------------------------------------
 	
 	public function testPlayerMyListLeftContentChooseSongChoose() {
@@ -1820,7 +1786,7 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
 ------------------------ test player ---------------------------------------*/
     
 
-    public function testCheckSongListNewListAndEdit() {
+   /* public function testCheckSongListNewListAndEdit() {
         $total = $this->countMenuList();
         $this->menu('login', $total['login'], 1);
         sleep(2);
@@ -1843,9 +1809,11 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
         $this->assertTrue($this->checkSongList('ccc', 'ddd', 1), "song list operation error , check if the title or the description is different");
         sleep(3);
 
-    }
+    }*/
 
-}
+
+
+}   
 
 
 ?>
