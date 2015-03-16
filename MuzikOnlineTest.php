@@ -4,11 +4,13 @@ require_once('lib/__init__.php');
 
 class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
 
+    //putenv("webdriver.chrome.driver=./chromedriver");
+  //$driver = ChromeDriver::start();
 	protected $host, $driver, $capabilities, $setTimeout, $refresh, $cookies;
 	protected $account, $accountpath, $password, $passwordpath, $passwordConfirm, $btnSend, $keyword, $searchBtn;
 	protected $periodicalTag, $memberFlag, $songListAmount, $songRepeat, $collectionAmount, $otherSongListAmount;
-	protected $mySelfFlag;
-	protected $playerFlag;
+	protected $mySelfFlag, $playerFlag;
+	protected $total;
 	protected $url = 'http://dev.muzik-online.com/tw';
 	protected $playerMyList, $playerMyCollection, $playertemporaryList;
 	protected $playerMyCollectionContent, $playerMyListContent;
@@ -16,9 +18,14 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
 
   	const CONNECT_TIMEOUT_MS = 500;
 
+
 	private function elementSetUp() {
+
 		$this->host = 'http://localhost:4444/wd/hub';
         $this->capabilities = array(\WebDriverCapabilityType::BROWSER_NAME => 'chrome', \WebDriverCapabilityType::BROWSER_NAME => 'firefox');
+        //$caps = DesiredCapabilities::chrome();
+        //$caps->setCapability(ChromeOptions::CAPABILITY, $options);
+        //$driver = RemoteWebDriver::create($url, $caps);
         $this->account = '';
         $this->password = '';
         $this->songListTitle = '';
@@ -49,6 +56,7 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
 /*------------------fill and check song list title description---------------------*/
 
     public function fillSongListTitleAndDescription($title, $description) {
+
         $this->songListTitle = $title;
         $this->songListDescription = $description;
     }
@@ -69,9 +77,9 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
         
     }
 
-/*------------------fill and check song list title description---------------------*/
 /*-------------------------account and password generator--------------------------*/
     public function memberAccountGenerate() {
+
         $length = 10;
         $account = '';
 
@@ -94,44 +102,45 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
     }
 
     public function memberPasswordGenerate() {
+
         $length = 10;
         $password = '';
         $word = 'abcdefghijkmnpqrstuvwxyz!@#$%^&*()-=ABCDEFGHIJKLMNPQRSTUVWXYZ<>;{}[]23456789';
         $len = strlen($word);
 
-        for ($i = 0; $i < $length; $i++) {
+        for ($index = 0; $index < $length; $index++) {
             $password .= $word[rand() % $len];
         }
 
         return $password;
     }
 
-/*-------------------------account and password generator--------------------------*/
 /*--------------------------------------player-------------------------------------*/
     
     public function playerOpen() {
+
         sleep(3);
-        $this->driver->getMouse()->mouseMove($this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player"]'))->getCoordinates());
+        $this->driver->getMouse()->mouseMove($this->driver->findElement(WebDriverBy::cssSelector('div.player.jp-player'))->getCoordinates());
         $this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player over"]/div[1]/div[1]/a'))->click();
     }
+
     public function playerCheckAlbum() {
-        if($this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[4]/a'))->isDisplayed()==1) {
+
+        if($this->driver->findElement(WebDriverBy::cssSelector('a.close.jp-delete'))->isDisplayed() == 1) {
             sleep(1);
-            $this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[4]/a'))->click();
+            $this->driver->findElement(WebDriverBy::cssSelector('a.close.jp-delete'))->click();
         }
     }
+
     public function playerClose() {
-        $this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[3]/div[3]/ul/li[7]/a'))->click();
+
+        $this->driver->findElement(WebDriverBy::cssSelector('a.open.icon.jp-open'))->click();
     }
 
     public function playerheaderSelect($select) {
 
+        $headerElememts = $this->driver->findElements(WebDriverBy::cssSelector('a.item'));
         switch ($select) {
-
-            case 'now playing':
-
-                $this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[1]/div[2]/ul/li[4]/a'))->click();
-                break;
 
             case 'temporaryList':
 
@@ -139,7 +148,7 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
                     $this->playerFlag = 'temporaryList';
                 }
                 $this->playertemporaryList = count($this->driver->findElements(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[2]/div[2]/div[2]/ul/li')));
-                $this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[1]/div[2]/ul/li[1]/a'))->click();
+                $headerElememts[0]->click();
                 break;
 
             case 'myList':
@@ -148,7 +157,7 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
                     $this->playerFlag = 'myList';
                     $this->playerMyList = $this->countPlayerMyListLeftColumnContent();
                 }
-                $this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[1]/div[2]/ul/li[2]/a'))->click();
+                $headerElememts[1]->click();
                 break;
 
             case 'myCollection':
@@ -157,7 +166,12 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
                     $this->playerFlag = 'myCollection';
                     $this->playerMyCollection = $this->countPlayerMyCollectionLeftColumnContent();
                 }
-                $this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[1]/div[2]/ul/li[3]/a'))->click();
+                $headerElememts[2]->click();
+                break;
+
+            case 'now playing':
+
+                $headerElememts[3]->click();
                 break;
 
             default:
@@ -168,30 +182,32 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
 
     public function playerfooterSelect($select) {
 
+        $footerLeftElements = $this->driver->findElements(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[3]/div[1]/ul/li'));
+
         switch ($select) {
+
+            case 'prev':
+
+                $footerLeftElements[0]->click();
+                break;
 
             case 'play':
 
-                $this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[3]/div[1]/ul/li[2]/a'))->click();
+                $footerLeftElements[1]->click();
                 break;
 
             case 'pause':
 
-                $this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[3]/div[1]/ul/li[3]/a'))->click();
+                $footerLeftElements[2]->click();
                 break;
 
             case 'next':
 
-                $this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[3]/div[1]/ul/li[4]/a'))->click();
-                break;
-
-            case 'prev':
-
-                $this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[3]/div[1]/ul/li[1]/a'))->click();
+                $footerLeftElements[3]->click();
                 break;
 
             case 'info':
-                //$this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[4]/a'))->click();
+                
                 $this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[3]/div[2]/div[3]/ul/li[2]/a'))->click();
                 break;
 
@@ -265,30 +281,23 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
         }
     }
     
-    public function countPlayerMyListLeftColumnContent() {
-        $myList = count($this->driver->findElements(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li'))) - 1;
-        return $myList;
-    }
+    public function countPlayerMyListLeftColumnContent() { return count($this->driver->findElements(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li'))) - 1; }
 
-    public function countPlayerMyCollectionLeftColumnContent() {
-        $collectionList = count($this->driver->findElements(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li')));
-        return $collectionList;
-    }
+    public function countPlayerMyCollectionLeftColumnContent() { return count($this->driver->findElements(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li'))); }
 
     public function playerLeftContentMyCollectionSongListSelect($parentIndex, $index) {
+
         $item = $this->driver->findElements(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$parentIndex.']/ul/li['.$index.']'));
         $js = "arguments[0].scrollIntoView(true);";
         $this->driver->executeScript($js, $item);
         $this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$parentIndex.']/ul/li['.$index.']/div/a'))->click();
         $songAmount = count($this->driver->findElements(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[2]/div[2]/div[2]/ul/li')));
-
-        //$indextem = $this->driver->findElements(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[2]/div[2]/div[2]/ul/li[sssss]'));//2
-        //$js = "arguments[0].scrollIntoView(true);";
-
-        //$this->driver->executeScript($js, $item);
     }
 
     public function playerLeftContentSelect($select, $index) {
+
+        $this->assertNotEquals($this->playerFlag, 'null', "user does not log in , player flag is null");
+        $this->assertNotEquals($this->playerFlag, 'temporaryList', "temporary list does not have left content");
 
         if($this->playerFlag == 'myList') {
             $this->assertFalse($index > 0 && $this->playerMyList >= $index, "index exceeds the amount");
@@ -298,16 +307,11 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
             $this->assertFalse($index > 0 && $this->playerMyCollection >= $index, "index exceeds the amount");
         }
 
-        else if($this->playerFlag == 'null' || $this->playerFlag == 'temporaryList') {
-            break;
-        }
-
         switch ($select) {
 
             case 'choose':
 
                 if($this->playerFlag == 'myList' || $this->playerFlag == 'myCollection') {
-
                     $this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$index.']/div[1]/a'))->click();
                 }
                 break;
@@ -335,7 +339,7 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
                 $this->assertEquals('myList', $this->playerFlag, "player flag isn't myList");       
                 $this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$index.']/div[2]/a[1]'))->click();
                 sleep(1);
-                $this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$index.']/form/input'))->clear()->sendKeys('abc');
+                $this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$index.']/form/input'))->clear()->sendKeys($this->songListTitle);
                 $this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$index.']/form/button'))->click();
                 break;
 
@@ -348,7 +352,7 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
                 $js = "arguments[0].scrollIntoView(true);";
                 $this->driver->executeScript($js, $item);
                 $this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$myList.']/div/a'))->click();
-                $this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$myList.']/li/form/input'))->clear()->sendKeys('aadfa');
+                $this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$myList.']/li/form/input'))->clear()->sendKeys($this->songListTitle);
                 $this->driver->findElement(WebDriverBy::xpath('//div[@class="player jp-player open"]/div[2]/div[1]/div[2]/ul/li['.$myList.']/li/form/button'))->click();
                 
                 break;
@@ -360,6 +364,7 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
     }
 
     public function playerSongContentfunc($select, $index) {
+
         if($this->playerFlag == 'temporaryList') {
             $this->assertFalse($index > 0 && $this->playertemporaryList >= $index, "index exceeds the amount");
         }
@@ -368,9 +373,6 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
         }
         else if($this->playerFlag == 'myCollection') {
             $this->assertFalse($index > 0 && $this->playerMyCollectionContent >= $index, "index exceeds the amount");
-        }
-        else if($this->playerFlag == 'null') {
-            break;
         }
 
         switch ($select) {
@@ -418,7 +420,8 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
                 break;
         }
     }
-/*--------------------------------------player-------------------------------------*/
+
+/*--------------------------------------menu and member-------------------------------------*/
     public function menu($select, $total, $index) {
 
 
@@ -532,7 +535,6 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
         }
     }
 
-
     public function countMenuList() {
 
         $allMusic = count($this->driver->findElements(WebDriverBy::xpath('//div[@class="container"]/nav/ul/li[1]/ul/li')));
@@ -540,7 +542,7 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
         $periodical = count($this->driver->findElements(WebDriverBy::xpath('//div[@class="container"]/nav/ul/li[4]/ul/li')));
         $memberCenter = count($this->driver->findElements(WebDriverBy::xpath('//div[@class="container"]/nav/ul/li[5]/ul/li')));
 
-        $array = array(
+        $this->total = array(
 
             'allMusic' => $allMusic,
             'article' => $article,
@@ -556,7 +558,6 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
             'payment' => 1,
         );
 
-        return $array;
     }
 
     public function checkLogin() {
@@ -581,6 +582,7 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
     public function countMemberSong() { return count($this->driver->findElements(WebDriverBy::xpath('//div[@class="compoTable"]/ul/li'))) - 1; }
 
     public function memberData() {
+
         $this->memberFlag = true;
         return $this->memberFlag;
     }
@@ -608,8 +610,8 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
                 
             case 'collection':
 
-                $this->pageRefresh();
-                $url = '//div[@class="primary-content js-controller-content"]/div[1]/a[2]';
+                $url = '//div[@class="primary-content j
+                $this->pageRefresh();s-controller-content"]/div[1]/a[2]';
                 $this->driver->findElement(WebDriverBy::xpath($url))->click();
                 $this->pageRefresh();
                 sleep(2);
@@ -690,6 +692,7 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
             case 'play':
 
                 //play the songs of the song list
+                $this->playerFlag = 'temporaryList';
                 $this->assertNotEquals(0, $this->songListAmount, "song list is null, you cannot play");
                 $this->assertTrue($index > 0 && $index <= $this->songListAmount && $this->songListAmount > 0, "index is less than 0");
                 $getSonglistDiv = $this->driver->findElement(WebDriverBy::xpath('//div[@class="listenContentInner clearfix"]/div['.$index.']/div'));
@@ -722,7 +725,6 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
         }
     }
 
-/*---------------------------------member song list operation--------------------------------*/
 /*--------------------song selection in member song list-------------------------------------*/
     public function memberSongListSongSelect($selectFunc, $index) {
 
@@ -782,15 +784,11 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
         }
     }
 
-/*--------------------song selection in member song list-------------------------------------*/ 
 /*------------------music adding to new list, temporary list or existed list-----------------*/
 
-    public function countFloatMenu(){
-        $menulist =  count($this->driver->findElements(WebDriverBy::xpath('//div[@class="float js-float menu"]/div/div/div/div[2]/ul/li')));
-        return $menulist;
-    }
-    public function addToListSelect($listSelect, $index)
-    {
+    public function countFloatMenu(){ return count($this->driver->findElements(WebDriverBy::xpath('//div[@class="float js-float menu"]/div/div/div/div[2]/ul/li'))); }
+
+    public function addToListSelect($listSelect, $index) {
         //three selection : new list, temporary, existed
         switch ($listSelect) {
 
@@ -855,9 +853,9 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
         }
     }
 
-/*-------------------------------member collection page select---------------------------*/
 /*----------------------------------member login-----------------------------------------*/
     public function login($account, $password) {
+
         $this->driver->findElement(WebDriverBy::id($this->accountpath))->sendKeys($account);
         $this->driver->findElement(WebDriverBy::id($this->passwordpath))->sendKeys($password);
         $this->wait(1);
@@ -865,7 +863,6 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
         $this->cookies = $this->driver->manage()->getCookies();
     }
 
-/*----------------------------------member login-----------------------------------------*/
 /*----------------------------------register account-------------------------------------*/
     public function register($account, $password) {
                 
@@ -878,7 +875,6 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
 
     }
 
-/*----------------------------------register account-------------------------------------*/
 /*----------------------------------forget password--------------------------------------*/
     public function forgetPassword($account, $password) {
 
@@ -888,7 +884,6 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
         $this->driver->findElement(WebDriverBy::classname($this->btnSend))->click();
     }
 
-/*----------------------------------forget password--------------------------------------*/
 /*------------------------------------menu search function-------------------------------*/
     public function search($string) {
 
@@ -897,7 +892,6 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
         $this->driver->findElement(WebDriverBy::cssSelector($this->searchBtn))->click();
     }
 
-/*------------------------------------menu search function-------------------------------*/
 /*---------------------------responseCode and get url list------------------------*/
     public function responseCode($timeout_in_ms, $url) {
 
@@ -947,12 +941,6 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
             // use result as url to pass 
             $requestcode = strval($this->responseCode(10000, $result));
 
-            /*if($requestcode == "0") {
-                $requestcode = strval($this->responseCode(10000, $result));
-                $temp = array("responseCode" => $requestcode, "url" => $result);
-                array_push($recodeList, $temp);
-            }*/
-
             if((strpos($requestcode, "4", 0) === 0) ||(strpos($requestcode, "5", 0) === 0)) {
                 $temp = array("responseCode" => $requestcode, "url" => $result);
                 array_push($recordList, $temp);
@@ -974,12 +962,6 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
                 // use result string as url to pass
                 $requestcode = strval($this->responseCode(10000, $string));
 
-                /*if($requestcode == "0") {
-                    $requestcode = strval($this->responseCode(10000, $result));
-                    $temp = array("responseCode" => $requestcode, "url" => $result);
-                    array_push($recodeList, $temp);
-                }*/
-
                 if((strpos($requestcode, "4", 0) === 0) ||(strpos($requestcode, "5", 0) === 0)) {
                     $temp = array("responseCode" => $requestcode, "url" => $string);
                     array_push($recordList, $temp);
@@ -993,12 +975,6 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
                 // use result string as url to pass
                 $requestcode = strval($this->responseCode(10000, $string));
 
-                /*if($requestcode == "0") {
-                    $requestcode = strval($this->responseCode(10000, $result));
-                    $temp = array("responseCode" => $requestcode, "url" => $result);
-                    array_push($recodeList, $temp);
-                }*/
-
                 if((strpos($requestcode, "4", 0) === 0) ||(strpos($requestcode, "5", 0) === 0)) {
                     $temp = array("responseCode" => $requestcode, "url" => $string);
                     array_push($recordList, $temp);
@@ -1009,12 +985,6 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
                 //other website 
                 $string = utf8_encode('http:'.$result);
                 $requestcode = strval($this->responseCode(10000, $string));
-
-                /*if($requestcode == "0") {
-                    $requestcode = strval($this->responseCode(10000, $result));
-                    $temp = array("responseCode" => $requestcode, "url" => $result);
-                    array_push($recodeList, $temp);
-                }*/
 
                 if((strpos($requestcode, "4") === 0) ||(strpos($requestcode, "5") === 0)) {
                     $temp = array("responseCode" => $requestcode, "url" => $string);
@@ -1027,7 +997,7 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
     }
 
 /*---------------------------responseCode and get url list------------------------*/
-	public function setUp() {
+	protected function setUp() {
 
     	$this->elementSetUp();
         $this->driver = RemoteWebDriver::create($this->host, $this->capabilities, 30000);
@@ -1036,11 +1006,31 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
 		$this->setTimeout = $this->driver->manage()->timeouts();
     }
 
-    public function teardown() {
+    protected function teardown() {
 
     	$this->driver->close();
     }
 
+    public function ads() {
+        $adDiv = $this->driver->findElement(WebDriverBy::cssSelector('div.float-upgrade.js-float-upgrade.visible'));
+        $adElement = $this->driver->findElement(WebDriverBy::xpath('//div[@class="float-upgrade js-float-upgrade visible"]/div/iframe'));
+        if($adDiv->isDisplayed()) {
+            if($adElement->isDisplayed()) {
+               
+                $this->driver->switchTo()->frame($adElement);
+                $this->driver->findElement(WebDriverBy::xpath('//div[@class="how-do-you-turn-this-on"]/ul/li[1]/div/div/div[1]/a'))->click();
+                sleep(2);
+                //$this->driver->switchTo()->defaultContent();
+            }
+            else {
+                break;
+            }
+        }
+        else {
+            break;
+        }
+        
+    }
     
 /*-------------------------- test response code ------------------------------
 
