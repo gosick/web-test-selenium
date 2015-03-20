@@ -4,8 +4,6 @@ require_once('lib/__init__.php');
 
 class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
 
-    //putenv("webdriver.chrome.driver=./chromedriver");
-  //$driver = ChromeDriver::start();
 	protected $host, $driver, $capabilities, $setTimeout, $refresh, $cookies;
 	protected $account, $accountpath, $password, $passwordpath, $passwordConfirm, $btnSend, $keyword, $searchBtn;
 	protected $periodicalTag, $memberFlag, $songListAmount, $songRepeat, $collectionAmount, $otherSongListAmount;
@@ -18,14 +16,10 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
 
   	const CONNECT_TIMEOUT_MS = 500;
 
-
 	private function elementSetUp() {
 
 		$this->host = 'http://localhost:4444/wd/hub';
         $this->capabilities = array(\WebDriverCapabilityType::BROWSER_NAME => 'chrome', \WebDriverCapabilityType::BROWSER_NAME => 'firefox');
-        //$caps = DesiredCapabilities::chrome();
-        //$caps->setCapability(ChromeOptions::CAPABILITY, $options);
-        //$driver = RemoteWebDriver::create($url, $caps);
         $this->account = '';
         $this->password = '';
         $this->songListTitle = '';
@@ -75,6 +69,16 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
             return true;
         }
         
+    }
+
+    public function checkDeleteSongList($index) {
+        $index = $index + 1;
+        $getSonglistDiv = $this->driver->findElement(WebDriverBy::xpath('//div[@class="listenContentInner clearfix"]/div['.$index.']/div'));
+        $this->driver->getMouse()->mouseMove($getSonglistDiv->getCoordinates());
+        $this->driver->findElement(WebDriverBy::xpath('//div[@class="listenContentInner clearfix"]/div['.$index.']/div/div/a[3]'))->click();
+        $title = $this->driver->findElement(WebDriverBy::id('playlist_title'))->getText();
+        $description = $this->driver->findElement(WebDriverBy::id('summary'))->getText();
+        return array('title' => $title, 'description' => $description);
     }
 
 /*-------------------------account and password generator--------------------------*/
@@ -267,12 +271,12 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
             
             case 'english':
 
-                $this->driver->findElement(WebDriverBy::xpath('//div[@class="float js-float global"]/div[2]/a[2]'))->click();
+                $this->driver->findElement(WebDriverBy::xpath('//div[@class="float js-float global"]/div[2]/a[3]'))->click();
                 break;
 
             case 'japanese':
 
-                $this->driver->findElement(WebDriverBy::xpath('//div[@class="float js-float global"]/div[2]/a[3]'))->click();
+                $this->driver->findElement(WebDriverBy::xpath('//div[@class="float js-float global"]/div[2]/a[2]'))->click();
                 break;
 
             default:
@@ -581,21 +585,14 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
 
     public function countMemberSong() { return count($this->driver->findElements(WebDriverBy::xpath('//div[@class="compoTable"]/ul/li'))) - 1; }
 
-    public function memberData() {
-
-        $this->memberFlag = true;
-        return $this->memberFlag;
-    }
-
     public function memberProfileSelect($select) {
 
         switch ($select) {
 
             case 'collect':
 
-                if($this->mySelfFlag == false) {
-                    $this->driver->findElement(WebDriverBy::xpath('//div[@class="primary-content js-controller-content"]/section/div[2]/a'))->click();
-                }
+                $this->assertFalse($this->mySelfFlag, "cannot collect myself");
+                $this->driver->findElement(WebDriverBy::xpath('//div[@class="primary-content js-controller-content"]/section/div[2]/a'))->click();
                 break;
 
             case 'songList':
@@ -651,19 +648,21 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
             case 'new list':
 
                 //--add new song list--//
-                $this->assertTrue($this->mySelfFlag);
+                $this->assertTrue($this->mySelfFlag, "isn't myself, cannot add new lists");
                 $number = $this->songListAmount + 1;
                 $this->driver->findElement(WebDriverBy::cssSelector('div.btnAdd.add'))->click();
                 $this->wait(0.5);
                 $this->driver->findElement(WebDriverBy::id('playlist_title'))->sendKeys($this->songListTitle);
                 $this->driver->findElement(WebDriverBy::id('summary'))->sendKeys($this->songListDescription);
                 $this->driver->findElement(WebDriverBy::cssSelector('button.button.button-gold'))->click();
-                $this->songListAmount = $this->countMemberSongList();
+                $this->songListAmount = $this->songListAmount + 1;
+                $this->assertTrue($this->checkSongList($this->songListTitle, $this->songListDescription, $this->songListAmount), "add unsucessfully");
                 break;
 
             case 'edit':
 
                 //edit a song list
+                $this->assertTrue($this->mySelfFlag, "isn't myself, cannot edit song lists");
                 $this->assertNotEquals(0, $this->songListAmount, "song list is null, you cannot edit");
                 $this->assertTrue($index > 0 && $index <= $this->songListAmount && $this->songListAmount > 0 && $this->mySelfFlag == true, "index is less than 0 or myself is false");
                 $getSonglistDiv = $this->driver->findElement(WebDriverBy::xpath('//div[@class="listenContentInner clearfix"]/div['.$index.']/div'));
@@ -672,6 +671,7 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
                 $this->driver->findElement(WebDriverBy::id('playlist_title'))->clear()->sendKeys($this->songListTitle);
                 $this->driver->findElement(WebDriverBy::id('summary'))->clear()->sendKeys($this->songListDescription);
                 $this->driver->findElement(WebDriverBy::cssSelector('button.button.button-gold'))->click();
+                $this->assertTrue($this->checkSongList($this->songListTitle, $this->songListDescription, $index), "edit unsucessfully");
                 break;
 
             case 'copy':
@@ -679,14 +679,23 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
                 //copy a song list
                 $this->assertNotEquals(0, $this->songListAmount, "song list is null, you cannot copy");
                 $this->assertTrue($index > 0 && $index <= $this->songListAmount && $this->songListAmount > 0, "index is less than 0");
-                $number = $this->songListAmount + 1;
                 $getSonglistDiv = $this->driver->findElement(WebDriverBy::xpath('//div[@class="listenContentInner clearfix"]/div['.$index.']/div'));
                 $this->driver->getMouse()->mouseMove($getSonglistDiv->getCoordinates());
                 $this->driver->findElement(WebDriverBy::xpath('//div[@class="listenContentInner clearfix"]/div['.$index.']/div/div/a[2]'))->click();
                 $this->driver->findElement(WebDriverBy::id('playlist_title'))->clear()->sendKeys($this->songListTitle);
                 $this->driver->findElement(WebDriverBy::id('summary'))->clear()->sendKeys($this->songListDescription);
                 $this->driver->findElement(WebDriverBy::cssSelector('button.button.button-gold'))->click() ;
-                $this->songListAmount = $this->countMemberSongList();
+                if($this->mySelfFlag == true) {
+                    $this->songListAmount = $this->songListAmount + 1;
+                    $this->assertTrue($this->checkSongList($this->songListTitle, $this->songListDescription, $this->songListAmount), "copy unsucessfully");
+                }
+                else {
+                    $this->menu('memberProfile', $this->total['memberProfile'], 1);
+                    sleep(2);
+                    $this->memberProfileSelect('songList');
+                    sleep(2);
+                    $this->assertTrue($this->checkSongList($this->songListTitle, $this->songListDescription, $this->songListAmount), "copy unsucessfully");
+                }
                 break;
 
             case 'play':
@@ -711,12 +720,23 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
             case 'del':
 
                 //delete the song list
+                $this->assertTrue($this->mySelfFlag, "isn't myself , cannot delete song lists");
                 $this->assertNotEquals(0, $this->songListAmount, "song list is null, you cannot delete");
                 $this->assertTrue($index > 0 && $index <= $this->songListAmount && $this->songListAmount > 0 && $this->mySelfFlag == true, "index is less than 0 or myself is false");
+                if(($index + 1) <= $this->songListAmount) {
+                    $data = $this->checkDeleteSongList($index);
+                }
                 $this->driver->findElement(WebDriverBy::cssSelector('div.btnDelete.remove'))->click();
                 $this->driver->findElement(WebDriverBy::xpath('//div[@class="listenContentInner clearfix"]/div['.$index.']/div/a'))->click();
                 $this->driver->findElement(WebDriverBy::cssSelector('button.button.button-gold'))->click();
+                sleep(2);
                 $this->songListAmount = $this->countMemberSongList();
+                if($index > $this->songListAmount) {
+                    break;
+                }
+                else {
+                    $this->assertTrue($this->checkSongList($data['title'], $data['description'], $index), "delete unsucessfully");
+                }
                 break;
 
             default:
@@ -1020,7 +1040,7 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
                 $this->driver->switchTo()->frame($adElement);
                 $this->driver->findElement(WebDriverBy::xpath('//div[@class="how-do-you-turn-this-on"]/ul/li[1]/div/div/div[1]/a'))->click();
                 sleep(2);
-                //$this->driver->switchTo()->defaultContent();
+                $this->driver->switchTo()->defaultContent();
             }
             else {
                 break;
@@ -1031,6 +1051,73 @@ class MuzikOnlineTests extends PHPUnit_Framework_TestCase {
         }
         
     }
+    public function test11() {
+        $this->countMenuList();
+        $this->menu('register', $this->total['register'], 1);
+        $account = $this->memberAccountGenerate();
+        $password = $this->memberPasswordGenerate();
+        $this->register($account, $password);
+        sleep(1);
+        $this->pageRefresh();
+        sleep(2);
+    }
+/*
+    public function test11() {
+        $this->countMenuList();
+        $this->menu('login', $this->total['login'], 1);
+        $account = 'f56112000@gmail.com';
+        $password = 'ss07290420';
+        $this->login($account, $password);
+        sleep(1);
+        $this->pageRefresh();
+        sleep(2);
+        $this->menu('memberProfile', $this->total['memberProfile'], 1);
+        sleep(2);
+        //$this->memberProfileSelect('songList');
+        //sleep(2);
+        //$this->memberSongListOperation('play', 1);
+        sleep(1);
+        $this->playerheaderSelect('temporaryList');
+        sleep(5);
+        //$this->playerfooterSelect('language');
+        sleep(2);
+        //$this->chooseLanguage('english');
+        sleep(2);
+        
+    }*//*
+    public function test12() {
+        $this->countMenuList();
+        $this->menu('login', $this->total['login'], 1);
+        $account = 'f56112000@gmail.com';
+        $password = 'ss07290420';
+        $this->login($account, $password);
+        sleep(1);
+        $this->pageRefresh();
+        sleep(2);
+        $this->menu('memberProfile', $this->total['memberProfile'], 1);
+        sleep(2);
+        //$this->memberProfileSelect('songList');
+        //sleep(2);
+        //$this->memberSongListOperation('play', 1);
+        sleep(1);
+        $this->playerheaderSelect('temporaryList');
+        sleep(5);
+        //$this->playerfooterSelect('language');
+        sleep(2);
+        //$this->chooseLanguage('english');
+        sleep(2);
+        
+    }
+*/
+
+   /* public function testaaa() {
+        $total = $this->countMenuList();
+        $this->menu('register', $total['register'], 1);
+        $account = $this->memberAccountGenerate();
+        $password = $this->memberPasswordGenerate();
+        $this->register($account, $password);
+        $this->pageRefresh();
+    }*/
     
 /*-------------------------- test response code ------------------------------
 
