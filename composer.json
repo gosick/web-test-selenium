@@ -16,7 +16,8 @@
   },
   "require-dev": {
     "phpunit/phpunit": "*",
-    "phpdocumentor/phpdocumentor": "2.*"
+    "phpdocumentor/phpdocumentor": "2.*",
+    "phpunit/phpunit-selenium": "*"
   },
   "autoload": {
     "classmap": ["lib/"]
