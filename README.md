@@ -1,105 +1,82 @@
-php-webdriver -- WebDriver bindings for PHP
-===========================================
+WebTest selenium, Using phpunit/selenium and php-webdriver facebook
+===================================================================
 
-##  DESCRIPTION
+##  Using
 
-This WebDriver client aims to be as close as possible to bindings in other languages. The concepts are very similar to the Java, .NET, Python and Ruby bindings for WebDriver.
+* Use php-webdriver facebook
 
-Looking for documentation about php-webdriver? See http://facebook.github.io/php-webdriver/
+    https://github.com/facebook/php-webdriver
 
-The PHP client was rewritten from scratch. Using the old version? Check out Adam Goucher's fork of it at https://github.com/Element-34/php-webdriver
+* Use phpunit/selenium
 
-Any complaint, question, idea? You can post it on the user group https://www.facebook.com/groups/phpwebdriver/.
+    https://github.com/giorgiosironi/phpunit-selenium    
 
-##  GETTING THE CODE
 
-### Github
-    git clone git@github.com:facebook/php-webdriver.git
+### Download and Install
 
-### Packagist
-Add the dependency. https://packagist.org/packages/facebook/webdriver
-
-    {
-      "require": {
-        "facebook/webdriver": "dev-master"
-      }
-    }
-    
 Download the composer.phar
 
     curl -sS https://getcomposer.org/installer | php
 
-Install the library.
-
+Install the composer.phar
+    
     php composer.phar install
-        
-   
 
-##  GETTING STARTED
+* You can just move composer.phar to /usr/local/bin/composer (on Mac) and then use:
 
-*   All you need as the server for this client is the selenium-server-standalone-#.jar file provided here: http://selenium-release.storage.googleapis.com/index.html
+    composer install
 
-*   Download and run that file, replacing # with the current server version.
+* If you want to use some new packages, just add then to your composer.json ,and then use:
 
-        java -jar selenium-server-standalone-#.jar
-
-*   Then when you create a session, be sure to pass the url to where your server is running.
-
-        // This would be the url of the host running the server-standalone.jar
-        $host = 'http://localhost:4444/wd/hub'; // this is the default
-
-*   Launch Firefox
-
-        $driver = RemoteWebDriver::create($host, DesiredCapabilities::firefox());
-        
-*   Launch Chrome
-
-        $driver = RemoteWebDriver::create($host, DesiredCapabilities::chrome());
-
-*   You can also customize the desired capabilities. 
-
-        $desired_capabilities = DesiredCapabilities::firefox();
-        $desired_capabilities->setJavascriptEnabled(false);
-        RemoteWebDriver::create($host, $desired_capabilities);
-
-*   See https://code.google.com/p/selenium/wiki/DesiredCapabilities for more details.
+    composer update  
 
 ## RUN UNIT TESTS
 
-To run unit tests simply run:
+For runnig selenium, you also should install java.
+
+launch selenium RC server 
+
+    java -jar selenium-server-standalone-x.xx.x.jar -role hub
+
+If you need to use chrome browser, you have to download chromedriver, and then
+
+    java -Dwebdriver.chrome.driver=/path/to/chromedriver -jar selenium-server-standalone-x.xx.x.jar -role hub
+
+Register a testing into hub
+
+    java -jar selenium-server-standalone-x.xx.x.jar -role node -hub http://localhost:4444/grid/register
+
+Use chromedriver
+    
+    java -Dwebdriver.chrome.driver=/path/to/chromedriver -jar selenium-server-standalone-x.xx.x.jar -role node -hub http://localhost:4444/grid/register 
+
+You also can :
+
+* register many nodes into hub, just add -port port_number to the command
+
+* default session is five, you can use -maxSession session_number to set the custom session number
+
+To run unit tests, first launch selenium, and then just run:
 
     ./vendor/bin/phpunit -c ./tests
 
-Note: For the functional test suite, a running selenium server is required.
+For getting the testing reports in file formats, you can also use:
 
-## MORE INFORMATION
+    ./vendor/bin/phpunit --log-junit <file> PHPUNIT ./tests
+    ./vendor/bin/phpunit --log-tap <file> PHPUNIT ./tests
+    ./vendor/bin/phpunit --log-json <file> PHPUNIT ./tests
+    ./vendor/bin/phpunit --testdox-html <file> PHPUNIT ./tests
+    ./vendor/bin/phpunit --testdox-text <file> PHPUNIT ./tests
 
-Check out the Selenium docs and wiki at http://docs.seleniumhq.org/docs/ and https://code.google.com/p/selenium/wiki
+See the grid console on:
 
-Learn how to integrate it with PHPUnit [Blogpost](http://codeception.com/11-12-2013/working-with-phpunit-and-selenium-webdriver.html) | [Demo Project](https://github.com/DavertMik/php-webdriver-demo)
+    http://localhost:4444/grid/console
 
-## SUPPORT
+## Description
 
-We have a great community willing to try and help you!
 
-Currently we offer support in two manners:
+For php-webdriver facebook cannot launch multiple browsers in a test running, so another use phpunit-selenium which supports multiple browsers running. Browsers can be announced in a public static array.
 
-### Via our Facebook Group
+php-webdriver facebook is close to Java, .NET, Python and Ruby bindings for WebDriver.
 
-If you have questions or are an active contributor consider joining our facebook group and contributing to the communal discussion and support
-
-https://www.facebook.com/groups/phpwebdriver/
-
-### Via Github
-
-If you're reading this you've already found our Github repository. If you have a question, feel free to submit it as an issue and our staff will do their best to help you as soon as possible.
-
-## CONTRIBUTING
-
-We love to have your help to make php-webdriver better. Feel free to 
-
-*   open an [issue](https://github.com/facebook/php-webdriver/issues) if you run into any problem. 
-*   fork the project and submit [pull request](https://github.com/facebook/php-webdriver/pulls). Before the pull requests can be accepted, a [Contributors Licensing Agreement](http://developers.facebook.com/opensource/cla) must be signed. 
-
-When you are going to contribute, please keep in mind that this webdriver client aims to be as close as possible to other languages Java/Ruby/Python/C#.
-FYI, here is the overview of [the official Java API](http://selenium.googlecode.com/svn/trunk/docs/api/java/index.html?overview-summary.html)
+phpunit-selenium has some problems in javascript executing for web elements.
