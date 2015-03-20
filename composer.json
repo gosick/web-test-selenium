@@ -15,7 +15,6 @@
     "facebook/webdriver": "dev-master"
   },
   "require-dev": {
-    "phpunit/phpunit": "*",
     "phpdocumentor/phpdocumentor": "2.*",
     "phpunit/phpunit-selenium": "*"
   },
