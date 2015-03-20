@@ -16,15 +16,18 @@ class WebTest extends PHPUnit_Extensions_Selenium2TestCase
 
     public static $browsers = array(
         
-        array('browserName' => 'firefox', 
-              'host'=>'localhost', 
-              'port'=>4444),
         array('browserName' => 'chrome',
               'host'=>'localhost',
               'port'=>4444),
+
+        array('browserName' => 'firefox', 
+              'host'=>'localhost', 
+              'port'=>4444),
     );
 
-    private function elementSetUp() {
+    
+
+    public function elementSetUp() {
 
         $this->host = 'http://localhost:4444/wd/hub';
         $this->account = '';
@@ -1030,34 +1033,5 @@ class WebTest extends PHPUnit_Extensions_Selenium2TestCase
                 break;
         }
     }
-
-    protected function setUp() {
-
-        $this->elementSetUp();
-        $this->setBrowserUrl('http://dev.muzik-online.com/tw');
-    }
-
-     public function test1(){
-        $this->url('http://dev.muzik-online.com/tw');
-        sleep(1);
-        $this->countMenuList();
-        sleep(1);
-        $this->menu('login', $this->total['login'], 1);
-        sleep(1);
-        $this->login('gosick@test.com', 'gosick');
-        sleep(1);
-        $this->refresh();
-        sleep(2);
-        //$this->ads();
-        sleep(2);
-        $this->menu('memberProfile', $this->total['memberProfile'], 1);
-        sleep(2);
-        $this->memberProfileSelect('songList');
-        sleep(4);
-        $this->fillSongListTitleAndDescription('test222', '222test');
-        $this->memberSongListOperation('new list', 1);
-        sleep(2);
-
-    }
-
+}
 ?>
